@@ -111,6 +111,8 @@ ImgList::ImgList(PNG &img) {
     northwest = cache.at(make_pair(0, img.height() - 1));
     // last node in the list; the lower-right corner of the image
     southeast = cache.at(make_pair(img.width() - 1, 0));
+    // Clear keys and pointers from map
+    cache.clear();
 }
 
 /************
@@ -207,9 +209,6 @@ ImgNode *ImgList::SelectNode(ImgNode *rowstart, int selectionmode) {
         double lowestBrightness = 756.0;
         while (curNode->east != nullptr) {
             // while in the loop you will always have access to left and right nodes
-            // double curBrightness = (curNode->colour.r * curNode->colour.a +
-            //                         curNode->colour.g * curNode->colour.a +
-            //                         curNode->colour.b * curNode->colour.a);
             double curBrightness = ((curNode->colour.r + curNode->colour.g +
                                      curNode->colour.b) *
                                     curNode->colour.a);
@@ -262,13 +261,11 @@ ImgNode *ImgList::SelectNode(ImgNode *rowstart, int selectionmode) {
 PNG ImgList::Render(bool fillgaps, int fillmode) const {
     PNG *outpng;
 
-    ImgNode *curNode = northwest;
+    ImgNode *curRow = northwest;
+    ImgNode *curNode;
 
     if (fillgaps) {
         outpng = new PNG(GetDimensionFullX(), GetDimensionY());
-        // switch case
-        // TODO: Implement fill gaps
-        ImgNode *curRow = northwest;
         int y = GetDimensionY() - 1;
         while (curRow != nullptr) {
             curNode = curRow;
@@ -284,14 +281,19 @@ PNG ImgList::Render(bool fillgaps, int fillmode) const {
                         break;
                     }
                     case 1: {
+                        pixelToAlter = (*outpng).getPixel(x + i, y);
+                        pixelToAlter->r = (curNode->colour.r + curNode->east->colour.r) / 2;
+                        pixelToAlter->g = (curNode->colour.g + curNode->east->colour.g) / 2;
+                        pixelToAlter->b = (curNode->colour.b + curNode->east->colour.b) / 2;
+                        pixelToAlter->a = (curNode->colour.a + curNode->east->colour.a) / 2;
                         break;
                     }
                     case 3: {
-                        break;
+                        // TODO: take i and divide by curNode->skipRight apply to color channels
                     }
                     }
                 }
-                x++;
+                x += curNode->skipright + 1;
                 curNode = curNode->east;
             }
             curRow = curRow->south;
@@ -299,7 +301,6 @@ PNG ImgList::Render(bool fillgaps, int fillmode) const {
         }
     } else {
         outpng = new PNG(GetDimensionX(), GetDimensionY());
-        ImgNode *curRow = northwest;
         int y = GetDimensionY() - 1;
         while (curRow != nullptr) {
             curNode = curRow;
