@@ -66,30 +66,22 @@ ImgList::ImgList(PNG &img) {
             try {
                 curNode->north = cache.at(make_pair(x, y + 1));
                 curNode->north->south = curNode;
-                cout << "North Key found" << std::endl;
             } catch (const out_of_range &e) {
-                cout << "North Key not found" << std::endl;
             }
             try {
                 curNode->east = cache.at(make_pair(x + 1, y));
                 curNode->east->west = curNode;
-                cout << "East Key found" << std::endl;
             } catch (const out_of_range &e) {
-                cout << "East Key not found" << std::endl;
             }
             try {
                 curNode->south = cache.at(make_pair(x, y - 1));
                 curNode->south->north = curNode;
-                cout << "south Key found" << std::endl;
             } catch (const out_of_range &e) {
-                cout << "south Key not found" << std::endl;
             }
             try {
                 curNode->west = cache.at(make_pair(x - 1, y));
                 curNode->west->east = curNode;
-                cout << "West Key found" << std::endl;
             } catch (const out_of_range &e) {
-                cout << "West Key not found" << std::endl;
             }
             cache[make_pair(x, y)] = curNode;
 
@@ -103,9 +95,7 @@ ImgList::ImgList(PNG &img) {
         if (x >= img.width()) {
             break;
         }
-        cout << "breakpoint" << std::endl;
     }
-    cout << "breakpoint" << std::endl;
 
     // entry point to the list; the upper-left corner of the image
     northwest = cache.at(make_pair(0, img.height() - 1));
@@ -437,7 +427,6 @@ void ImgList::Clear() {
  * @post this list has contents copied from by physically separate from otherlist
  */
 void ImgList::Copy(const ImgList &otherlist) {
-    // add your implementation here
 }
 
 /*************************************************************************************************
