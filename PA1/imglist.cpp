@@ -23,6 +23,8 @@
  */
 ImgList::ImgList() {
     // set appropriate values for all member attributes here
+    northwest = NULL;
+    southeast = NULL;
 }
 
 /**
@@ -31,9 +33,26 @@ ImgList::ImgList() {
  */
 ImgList::ImgList(PNG &img) {
 
-    map<pair<int, int>, ImgNode *> cache;
-
     ImgNode *curNode;
+
+    if (img.height() < 2) {
+        ImgNode *tmpNode = new ImgNode();
+        tmpNode->colour = *img.getPixel(0, 0);
+        northwest = tmpNode;
+
+        for (int i = 1; i < img.width(); i++) {
+            curNode = new ImgNode();
+            tmpNode->colour = *img.getPixel(i, 0);
+            curNode->west = tmpNode;
+            tmpNode->east = curNode;
+            tmpNode = curNode;
+        }
+
+        southeast = tmpNode;
+        return;
+    }
+
+    map<pair<int, int>, ImgNode *> cache;
 
     unsigned int x = 0;
     unsigned int y;
@@ -263,7 +282,7 @@ PNG ImgList::Render(bool fillgaps, int fillmode) const {
             while (curNode != nullptr) {
                 RGBAPixel *pixelToAlter = (*outpng).getPixel(x, y);
                 *pixelToAlter = curNode->colour;
-                for (int i = 1; i <= curNode->skipright; i++) {
+                for (unsigned int i = 1; i <= curNode->skipright; i++) {
                     switch (fillmode) {
                     case 0: {
                         pixelToAlter = (*outpng).getPixel(x + i, y);
@@ -387,8 +406,13 @@ void ImgList::Carve(int selectionmode) {
  */
 void ImgList::Carve(unsigned int rounds, int selectionmode) {
     // TODO: HAVE TO ENSURE THAT THE NUMBER OF ROUNDS DOES NOT EXCEED (width - 2)
-    if (rounds > (GetDimensionX() - 2)) {
-        rounds = GetDimensionX() - 2;
+    unsigned int dimensionX = GetDimensionX();
+    if (dimensionX < 2) {
+        dimensionX = 2;
+    }
+
+    if (rounds > (dimensionX - 2)) {
+        rounds = dimensionX - 2;
     }
 
     for (unsigned int i = 0; i < rounds; i++) {

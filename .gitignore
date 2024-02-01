@@ -1,1 +1,4 @@
-/PA1/output-images
+/PA1/output-images/*
+*.o
+PA1/testimglist
+/PA1/*.o

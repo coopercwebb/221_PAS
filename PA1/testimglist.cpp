@@ -17,6 +17,8 @@ using namespace cs221util;
 void TestConstructorRender();
 void TestCarveMode0();
 void TestRenderMode2();
+void Test5SmallPNG();
+void Test1SmallPNG();
 
 int main(void) {
 
@@ -25,6 +27,8 @@ int main(void) {
     TestConstructorRender();
     TestCarveMode0();
     TestRenderMode2();
+    Test5SmallPNG();
+    Test1SmallPNG();
 
     return 0;
 }
@@ -189,6 +193,42 @@ void TestRenderMode2() {
         cout << "done." << endl;
 
         cout << "Exiting TestRenderMode2 function" << endl;
+    } else {
+        cout << "Input PNG image not read. Exiting..." << endl;
+    }
+}
+
+void Test5SmallPNG() {
+    cout << "Entered Test5SmallPNG function" << endl;
+
+    PNG inimg;
+    inimg.readFromFile("input-images/1x5.png");
+
+    if (inimg.height() == 1 && inimg.width() == 5) {
+        ImgList list1x5(inimg);
+        PNG outputimg10 = list1x5.Render(false, 0);
+        outputimg10.writeToFile("output-images/1x5-output1.png");
+        list1x5.Carve(1, 0);
+        PNG outputimg11 = list1x5.Render(false, 0);
+        outputimg11.writeToFile("output-images/1x5-output2.png");
+    } else {
+        cout << "Input PNG image not read. Exiting..." << endl;
+    }
+}
+
+void Test1SmallPNG() {
+    cout << "Entered Test1SmallPNG function" << endl;
+
+    PNG inimg;
+    inimg.readFromFile("input-images/1x1.png");
+
+    if (inimg.height() == 1 && inimg.width() == 1) {
+        ImgList list1x1(inimg);
+        PNG outputimg10 = list1x1.Render(false, 0);
+        outputimg10.writeToFile("output-images/1x1-output1.png");
+        list1x1.Carve(1, 0);
+        PNG outputimg12 = list1x1.Render(false, 0);
+        outputimg12.writeToFile("output-images/1x1-output2.png");
     } else {
         cout << "Input PNG image not read. Exiting..." << endl;
     }
