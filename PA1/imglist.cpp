@@ -441,12 +441,12 @@ void ImgList::Clear() {
 
     while (curRow != nullptr) {
         curNode = curRow;
+        curRow = curRow->south;
         while (curNode != nullptr) {
             tmpNode = curNode;
             curNode = curNode->east;
             delete (tmpNode);
         }
-        curRow = curRow->south;
     }
     northwest = NULL;
     southeast = NULL;

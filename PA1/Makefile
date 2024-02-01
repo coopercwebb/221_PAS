@@ -2,9 +2,9 @@ EXEImglist = testimglist
 OBJS  = PNG.o RGBAPixel.o lodepng.o testimglist.o imglist.o imglist-given.o
 
 CXX = clang++
-CXXFLAGS = -std=c++1y -c -g -O0 -Wall -Wextra -pedantic
+CXXFLAGS = -std=c++1y -c -g -O0 -Wall -Wextra -pedantic -fsanitize=address
 LD = clang++
-LDFLAGS = -std=c++1y -lpthread -lm
+LDFLAGS = -std=c++1y -lpthread -lm -fsanitize=address
 
 all : testimglist
 
