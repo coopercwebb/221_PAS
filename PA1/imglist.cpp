@@ -40,9 +40,9 @@ ImgList::ImgList(PNG &img) {
         tmpNode->colour = *img.getPixel(0, 0);
         northwest = tmpNode;
 
-        for (int i = 1; i < img.width(); i++) {
+        for (unsigned int i = 1; i < img.width(); i++) {
             curNode = new ImgNode();
-            tmpNode->colour = *img.getPixel(i, 0);
+            curNode->colour = *img.getPixel(i, 0);
             curNode->west = tmpNode;
             tmpNode->east = curNode;
             tmpNode = curNode;
@@ -299,18 +299,26 @@ PNG ImgList::Render(bool fillgaps, int fillmode) const {
                     }
                     case 2: {
                         pixelToAlter = (*outpng).getPixel(x + i, y);
-                        if (curNode->colour < (curNode->east->colour)) {
+
+                        if (curNode->colour.r <= curNode->east->colour.r) {
                             pixelToAlter->r = curNode->colour.r + ((curNode->east->colour.r - curNode->colour.r) * i / (curNode->skipright + 1));
-                            pixelToAlter->g = curNode->colour.g + ((curNode->east->colour.g - curNode->colour.g) * i / (curNode->skipright + 1));
-                            pixelToAlter->b = curNode->colour.b + ((curNode->east->colour.b - curNode->colour.b) * i / (curNode->skipright + 1));
-                            pixelToAlter->a = curNode->colour.a + ((curNode->east->colour.a - curNode->colour.a) * i / (curNode->skipright + 1));
-                            break;
                         } else {
                             pixelToAlter->r = curNode->east->colour.r + ((curNode->colour.r - curNode->east->colour.r) * (curNode->skipright - i + 1) / (curNode->skipright + 1));
+                        }
+                        if (curNode->colour.g <= curNode->east->colour.g) {
+                            pixelToAlter->g = curNode->colour.g + ((curNode->east->colour.g - curNode->colour.g) * i / (curNode->skipright + 1));
+                        } else {
                             pixelToAlter->g = curNode->east->colour.g + ((curNode->colour.g - curNode->east->colour.g) * (curNode->skipright - i + 1) / (curNode->skipright + 1));
+                        }
+                        if (curNode->colour.b <= curNode->east->colour.b) {
+                            pixelToAlter->b = curNode->colour.b + ((curNode->east->colour.b - curNode->colour.b) * i / (curNode->skipright + 1));
+                        } else {
                             pixelToAlter->b = curNode->east->colour.b + ((curNode->colour.b - curNode->east->colour.b) * (curNode->skipright - i + 1) / (curNode->skipright + 1));
+                        }
+                        if (curNode->colour.a <= curNode->east->colour.a) {
+                            pixelToAlter->a = curNode->colour.a + ((curNode->east->colour.a - curNode->colour.a) * i / (curNode->skipright + 1));
+                        } else {
                             pixelToAlter->a = curNode->east->colour.a + ((curNode->colour.a - curNode->east->colour.a) * (curNode->skipright - i + 1) / (curNode->skipright + 1));
-                            break;
                         }
                     }
                     }
