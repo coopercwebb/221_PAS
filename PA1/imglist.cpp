@@ -204,12 +204,15 @@ ImgNode *ImgList::SelectNode(ImgNode *rowstart, int selectionmode) {
     ImgNode *selectedNode = rowstart->east;
     switch (selectionmode) {
     case 0: {
-        double lowestBrightness = 1.0;
+        double lowestBrightness = 756.0;
         while (curNode->east != nullptr) {
             // while in the loop you will always have access to left and right nodes
-            double curBrightness = (curNode->colour.r * curNode->colour.a +
-                                    curNode->colour.g * curNode->colour.a +
-                                    curNode->colour.b * curNode->colour.a);
+            // double curBrightness = (curNode->colour.r * curNode->colour.a +
+            //                         curNode->colour.g * curNode->colour.a +
+            //                         curNode->colour.b * curNode->colour.a);
+            double curBrightness = ((curNode->colour.r + curNode->colour.g +
+                                     curNode->colour.b) *
+                                    curNode->colour.a);
             // < ensures that the left most node is removed
             if (curBrightness < lowestBrightness) {
                 lowestBrightness = curBrightness;
@@ -265,20 +268,35 @@ PNG ImgList::Render(bool fillgaps, int fillmode) const {
         outpng = new PNG(GetDimensionFullX(), GetDimensionY());
         // switch case
         // TODO: Implement fill gaps
-        // ImgNode *curRow = northwest;
-        // int y = GetDimensionY() - 1;
-        // while (curRow != nullptr) {
-        //     curNode = curRow;
-        //     int x = 0;
-        //     while (curNode != nullptr) {
-        //         RGBAPixel *pixelToAlter = (*outpng).getPixel(x, y);
-        //         *pixelToAlter = curNode->colour;
-        //         x += curNode->skipright + 1;
-        //         curNode = curNode->east;
-        //     }
-        //     curRow = curRow->south;
-        //     y--;
-        // }
+        ImgNode *curRow = northwest;
+        int y = GetDimensionY() - 1;
+        while (curRow != nullptr) {
+            curNode = curRow;
+            int x = 0;
+            while (curNode != nullptr) {
+                RGBAPixel *pixelToAlter = (*outpng).getPixel(x, y);
+                *pixelToAlter = curNode->colour;
+                for (int i = 1; i <= curNode->skipright; i++) {
+                    switch (fillmode) {
+                    case 0: {
+                        pixelToAlter = (*outpng).getPixel(x + i, y);
+                        *pixelToAlter = curNode->colour;
+                        break;
+                    }
+                    case 1: {
+                        break;
+                    }
+                    case 3: {
+                        break;
+                    }
+                    }
+                }
+                x++;
+                curNode = curNode->east;
+            }
+            curRow = curRow->south;
+            y--;
+        }
     } else {
         outpng = new PNG(GetDimensionX(), GetDimensionY());
         ImgNode *curRow = northwest;
@@ -289,7 +307,7 @@ PNG ImgList::Render(bool fillgaps, int fillmode) const {
             while (curNode != nullptr) {
                 RGBAPixel *pixelToAlter = (*outpng).getPixel(x, y);
                 *pixelToAlter = curNode->colour;
-                x += 1;
+                x++;
                 curNode = curNode->east;
             }
             curRow = curRow->south;
