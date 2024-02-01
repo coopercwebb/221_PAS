@@ -413,7 +413,21 @@ void ImgList::Carve(unsigned int rounds, int selectionmode) {
  *       member attributes have values consistent with an empty list.
  */
 void ImgList::Clear() {
-    // add your implementation here
+    ImgNode *curRow = northwest;
+    ImgNode *curNode;
+    ImgNode *tmpNode;
+
+    while (curRow != nullptr) {
+        curNode = curRow;
+        while (curNode != nullptr) {
+            tmpNode = curNode;
+            curNode = curNode->east;
+            delete (tmpNode);
+        }
+        curRow = curRow->south;
+    }
+    northwest = NULL;
+    southeast = NULL;
 }
 
 /**
