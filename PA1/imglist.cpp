@@ -288,8 +288,21 @@ PNG ImgList::Render(bool fillgaps, int fillmode) const {
                         pixelToAlter->a = (curNode->colour.a + curNode->east->colour.a) / 2;
                         break;
                     }
-                    case 3: {
-                        // TODO: take i and divide by curNode->skipRight apply to color channels
+                    case 2: {
+                        pixelToAlter = (*outpng).getPixel(x + i, y);
+                        if (curNode->colour < (curNode->east->colour)) {
+                            pixelToAlter->r = curNode->colour.r + ((curNode->east->colour.r - curNode->colour.r) * i / (curNode->skipright + 1));
+                            pixelToAlter->g = curNode->colour.g + ((curNode->east->colour.g - curNode->colour.g) * i / (curNode->skipright + 1));
+                            pixelToAlter->b = curNode->colour.b + ((curNode->east->colour.b - curNode->colour.b) * i / (curNode->skipright + 1));
+                            pixelToAlter->a = curNode->colour.a + ((curNode->east->colour.a - curNode->colour.a) * i / (curNode->skipright + 1));
+                            break;
+                        } else {
+                            pixelToAlter->r = curNode->east->colour.r + ((curNode->colour.r - curNode->east->colour.r) * (curNode->skipright - i + 1) / (curNode->skipright + 1));
+                            pixelToAlter->g = curNode->east->colour.g + ((curNode->colour.g - curNode->east->colour.g) * (curNode->skipright - i + 1) / (curNode->skipright + 1));
+                            pixelToAlter->b = curNode->east->colour.b + ((curNode->colour.b - curNode->east->colour.b) * (curNode->skipright - i + 1) / (curNode->skipright + 1));
+                            pixelToAlter->a = curNode->east->colour.a + ((curNode->colour.a - curNode->east->colour.a) * (curNode->skipright - i + 1) / (curNode->skipright + 1));
+                            break;
+                        }
                     }
                     }
                 }
