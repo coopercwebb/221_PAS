@@ -19,6 +19,7 @@ void TestCarveMode0();
 void TestRenderMode2();
 void Test5SmallPNG();
 void Test1SmallPNG();
+void comparePNG();
 
 int main(void) {
 
@@ -29,6 +30,7 @@ int main(void) {
     TestRenderMode2();
     Test5SmallPNG();
     Test1SmallPNG();
+    comparePNG();
 
     return 0;
 }
@@ -231,5 +233,22 @@ void Test1SmallPNG() {
         outputimg12.writeToFile("output-images/1x1-output2.png");
     } else {
         cout << "Input PNG image not read. Exiting..." << endl;
+    }
+}
+
+void comparePNG() {
+    cout << "Entered comparePNG function" << endl;
+
+    PNG inimg;
+    PNG outimg;
+    inimg.readFromFile("input-images/3x4.png");
+    outimg.readFromFile("output-images/3x4-r_0_0.png");
+    ImgList list3x4_input(inimg);
+    ImgList list3x4_output(outimg);
+
+    if (inimg == outimg) {
+        cout << "Input PNG and output equal" << endl;
+    } else {
+        cout << "Input PNG and output not equal" << endl;
     }
 }

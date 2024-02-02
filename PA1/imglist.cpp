@@ -21,8 +21,7 @@
 /**
  * Default constructor. Makes an empty list
  */
-ImgList::ImgList()
-{
+ImgList::ImgList() {
     // set appropriate values for all member attributes here
     northwest = NULL;
     southeast = NULL;
@@ -32,19 +31,16 @@ ImgList::ImgList()
  * Creates a list from image data
  * @pre img has dimensions of at least 1x1
  */
-ImgList::ImgList(PNG &img)
-{
+ImgList::ImgList(PNG &img) {
 
     ImgNode *curNode;
 
-    if (img.height() < 2)
-    {
+    if (img.height() < 2) {
         ImgNode *tmpNode = new ImgNode();
         tmpNode->colour = *img.getPixel(0, 0);
         northwest = tmpNode;
 
-        for (unsigned int i = 1; i < img.width(); i++)
-        {
+        for (unsigned int i = 1; i < img.width(); i++) {
             curNode = new ImgNode();
             curNode->colour = *img.getPixel(i, 0);
             curNode->west = tmpNode;
@@ -61,89 +57,69 @@ ImgList::ImgList(PNG &img)
     unsigned int x = 0;
     unsigned int y;
     bool offByOne = true;
-    while (true)
-    {
+    while (true) {
         (offByOne) ? y = 1 : y = 0;
-        while (true)
-        {
+        while (true) {
             curNode = new ImgNode();
             curNode->colour = *img.getPixel(x, y);
             cache[make_pair(x, y)] = curNode;
             y += 2;
-            if (y >= img.height())
-            {
+            if (y >= img.height()) {
                 break;
             }
         }
         offByOne = !offByOne;
         x++;
-        if (x >= img.width())
-        {
+        if (x >= img.width()) {
             break;
         }
     }
 
     x = 0;
     offByOne = false;
-    while (true)
-    {
+    while (true) {
         (offByOne) ? y = 1 : y = 0;
-        while (true)
-        {
+        while (true) {
             curNode = new ImgNode();
             curNode->colour = *img.getPixel(x, y);
-            try
-            {
-                curNode->north = cache.at(make_pair(x, y + 1));
-                curNode->north->south = curNode;
+            try {
+                curNode->south = cache.at(make_pair(x, y + 1));
+                curNode->south->north = curNode;
+            } catch (const out_of_range &e) {
             }
-            catch (const out_of_range &e)
-            {
-            }
-            try
-            {
+            try {
                 curNode->east = cache.at(make_pair(x + 1, y));
                 curNode->east->west = curNode;
+            } catch (const out_of_range &e) {
             }
-            catch (const out_of_range &e)
-            {
+            try {
+                curNode->north = cache.at(make_pair(x, y - 1));
+                curNode->north->south = curNode;
+            } catch (const out_of_range &e) {
             }
-            try
-            {
-                curNode->south = cache.at(make_pair(x, y - 1));
-                curNode->south->north = curNode;
-            }
-            catch (const out_of_range &e)
-            {
-            }
-            try
-            {
+            try {
                 curNode->west = cache.at(make_pair(x - 1, y));
                 curNode->west->east = curNode;
-            }
-            catch (const out_of_range &e)
-            {
+            } catch (const out_of_range &e) {
             }
             cache[make_pair(x, y)] = curNode;
 
             y += 2;
-            if (y >= img.height())
-            {
+            if (y >= img.height()) {
                 break;
             }
         }
         offByOne = !offByOne;
         x++;
-        if (x >= img.width())
-        {
+        if (x >= img.width()) {
             break;
         }
     }
 
     // entry point to the list; the upper-left corner of the image
-    northwest = cache.at(make_pair(0, img.height() - 1));
+    northwest = cache.at(make_pair(0, 0));
     // last node in the list; the lower-right corner of the image
-    southeast = cache.at(make_pair(img.width() - 1, 0));
+    southeast = cache.at(make_pair(img.width() - 1, img.height() - 1));
     // Clear keys and pointers from map
     cache.clear();
 }
@@ -159,17 +135,14 @@ ImgList::ImgList(PNG &img)
  * We expect your solution to take linear time in the number of nodes in the
  *   x dimension.
  */
-unsigned int ImgList::GetDimensionX() const
-{
-    if (northwest == nullptr)
-    {
+unsigned int ImgList::GetDimensionX() const {
+    if (northwest == nullptr) {
         return 0;
     }
 
     int lengthX = 1;
     ImgNode *curNode = northwest;
-    while (curNode->east != nullptr)
-    {
+    while (curNode->east != nullptr) {
         lengthX++;
         curNode = curNode->east;
     }
@@ -184,17 +157,14 @@ unsigned int ImgList::GetDimensionX() const
  * We expect your solution to take linear time in the number of nodes in the
  *   y dimension.
  */
-unsigned int ImgList::GetDimensionY() const
-{
-    if (northwest == nullptr)
-    {
+unsigned int ImgList::GetDimensionY() const {
+    if (northwest == nullptr) {
         return 0;
     }
 
     int lengthY = 1;
     ImgNode *curNode = northwest;
-    while (curNode->south != nullptr)
-    {
+    while (curNode->south != nullptr) {
         lengthY++;
         curNode = curNode->south;
     }
@@ -208,17 +178,14 @@ unsigned int ImgList::GetDimensionY() const
  * We expect your solution to take linear time in the number of nodes in the
  *   x dimension.
  */
-unsigned int ImgList::GetDimensionFullX() const
-{
-    if (northwest == nullptr)
-    {
+unsigned int ImgList::GetDimensionFullX() const {
+    if (northwest == nullptr) {
         return 0;
     }
 
     int lengthX = 1;
     ImgNode *curNode = northwest;
-    while (curNode->east != nullptr)
-    {
+    while (curNode->east != nullptr) {
         lengthX += curNode->skipright + 1;
         curNode = curNode->east;
     }
@@ -242,25 +209,20 @@ unsigned int ImgList::GetDimensionFullX() const
  * "colour difference" between two pixels can be determined
  * using the "distanceTo" function found in RGBAPixel.h.
  */
-ImgNode *ImgList::SelectNode(ImgNode *rowstart, int selectionmode)
-{
+ImgNode *ImgList::SelectNode(ImgNode *rowstart, int selectionmode) {
     // skip first node
     ImgNode *curNode = rowstart->east;
     ImgNode *selectedNode = rowstart->east;
-    switch (selectionmode)
-    {
-    case 0:
-    {
+    switch (selectionmode) {
+    case 0: {
         double lowestBrightness = 756.0;
-        while (curNode->east != nullptr)
-        {
+        while (curNode->east != nullptr) {
             // while in the loop you will always have access to left and right nodes
             double curBrightness = ((curNode->colour.r + curNode->colour.g +
                                      curNode->colour.b) *
                                     curNode->colour.a);
             // < ensures that the left most node is removed
-            if (curBrightness < lowestBrightness)
-            {
+            if (curBrightness < lowestBrightness) {
                 lowestBrightness = curBrightness;
                 selectedNode = curNode;
             }
@@ -268,17 +230,14 @@ ImgNode *ImgList::SelectNode(ImgNode *rowstart, int selectionmode)
         }
         break;
     }
-    case 1:
-    {
+    case 1: {
         double bestDifference = 756.0;
-        while (curNode->east != nullptr)
-        {
+        while (curNode->east != nullptr) {
             // while in the loop you will always have access to left and right nodes
             double curDifference = (curNode->colour.distanceTo(curNode->west->colour)) +
                                    (curNode->colour.distanceTo(curNode->east->colour));
             // < ensures that the left most node is removed
-            if (curDifference < bestDifference)
-            {
+            if (curDifference < bestDifference) {
                 bestDifference = curDifference;
                 selectedNode = curNode;
             }
@@ -308,36 +267,28 @@ ImgNode *ImgList::SelectNode(ImgNode *rowstart, int selectionmode)
  *             Like fillmode 1, use the smaller difference interval for hue,
  *             and the smaller-valued average for diametric hues
  */
-PNG ImgList::Render(bool fillgaps, int fillmode) const
-{
+PNG ImgList::Render(bool fillgaps, int fillmode) const {
     PNG outpng(GetDimensionX(), GetDimensionY());
     ImgNode *curRow = northwest;
     ImgNode *curNode;
 
-    if (fillgaps)
-    {
+    if (fillgaps) {
         outpng.resize(GetDimensionFullX(), GetDimensionY());
-        int y = GetDimensionY() - 1;
-        while (curRow != nullptr)
-        {
+        int y = 0;
+        while (curRow != nullptr) {
             curNode = curRow;
             int x = 0;
-            while (curNode != nullptr)
-            {
+            while (curNode != nullptr) {
                 RGBAPixel *pixelToAlter = (outpng).getPixel(x, y);
                 *pixelToAlter = curNode->colour;
-                for (unsigned int i = 1; i <= curNode->skipright; i++)
-                {
-                    switch (fillmode)
-                    {
-                    case 0:
-                    {
+                for (unsigned int i = 1; i <= curNode->skipright; i++) {
+                    switch (fillmode) {
+                    case 0: {
                         pixelToAlter = (outpng).getPixel(x + i, y);
                         *pixelToAlter = curNode->colour;
                         break;
                     }
-                    case 1:
-                    {
+                    case 1: {
                         pixelToAlter = (outpng).getPixel(x + i, y);
                         pixelToAlter->r = (curNode->colour.r + curNode->east->colour.r) / 2;
                         pixelToAlter->g = (curNode->colour.g + curNode->east->colour.g) / 2;
@@ -345,40 +296,27 @@ PNG ImgList::Render(bool fillgaps, int fillmode) const
                         pixelToAlter->a = (curNode->colour.a + curNode->east->colour.a) / 2;
                         break;
                     }
-                    case 2:
-                    {
+                    case 2: {
                         pixelToAlter = (outpng).getPixel(x + i, y);
 
-                        if (curNode->colour.r <= curNode->east->colour.r)
-                        {
+                        if (curNode->colour.r <= curNode->east->colour.r) {
                             pixelToAlter->r = curNode->colour.r + ((curNode->east->colour.r - curNode->colour.r) * i / (curNode->skipright + 1));
-                        }
-                        else
-                        {
+                        } else {
                             pixelToAlter->r = curNode->east->colour.r + ((curNode->colour.r - curNode->east->colour.r) * (curNode->skipright - i + 1) / (curNode->skipright + 1));
                         }
-                        if (curNode->colour.g <= curNode->east->colour.g)
-                        {
+                        if (curNode->colour.g <= curNode->east->colour.g) {
                             pixelToAlter->g = curNode->colour.g + ((curNode->east->colour.g - curNode->colour.g) * i / (curNode->skipright + 1));
-                        }
-                        else
-                        {
+                        } else {
                             pixelToAlter->g = curNode->east->colour.g + ((curNode->colour.g - curNode->east->colour.g) * (curNode->skipright - i + 1) / (curNode->skipright + 1));
                         }
-                        if (curNode->colour.b <= curNode->east->colour.b)
-                        {
+                        if (curNode->colour.b <= curNode->east->colour.b) {
                             pixelToAlter->b = curNode->colour.b + ((curNode->east->colour.b - curNode->colour.b) * i / (curNode->skipright + 1));
-                        }
-                        else
-                        {
+                        } else {
                             pixelToAlter->b = curNode->east->colour.b + ((curNode->colour.b - curNode->east->colour.b) * (curNode->skipright - i + 1) / (curNode->skipright + 1));
                         }
-                        if (curNode->colour.a <= curNode->east->colour.a)
-                        {
+                        if (curNode->colour.a <= curNode->east->colour.a) {
                             pixelToAlter->a = curNode->colour.a + ((curNode->east->colour.a - curNode->colour.a) * i / (curNode->skipright + 1));
-                        }
-                        else
-                        {
+                        } else {
                             pixelToAlter->a = curNode->east->colour.a + ((curNode->colour.a - curNode->east->colour.a) * (curNode->skipright - i + 1) / (curNode->skipright + 1));
                         }
                     }
@@ -388,25 +326,21 @@ PNG ImgList::Render(bool fillgaps, int fillmode) const
                 curNode = curNode->east;
             }
             curRow = curRow->south;
-            y--;
+            y++;
         }
-    }
-    else
-    {
-        int y = GetDimensionY() - 1;
-        while (curRow != nullptr)
-        {
+    } else {
+        int y = 0;
+        while (curRow != nullptr) {
             curNode = curRow;
             int x = 0;
-            while (curNode != nullptr)
-            {
+            while (curNode != nullptr) {
                 RGBAPixel *pixelToAlter = (outpng).getPixel(x, y);
                 *pixelToAlter = curNode->colour;
                 x++;
                 curNode = curNode->east;
             }
             curRow = curRow->south;
-            y--;
+            y++;
         }
     }
 
@@ -427,33 +361,24 @@ PNG ImgList::Render(bool fillgaps, int fillmode) const
  *       gaps are linked appropriately, and their skip values are updated to reflect
  *       the size of the gap.
  */
-void ImgList::Carve(int selectionmode)
-{
+void ImgList::Carve(int selectionmode) {
 
     // skip first row, stopping loop when south is null prevents last row from carving
     ImgNode *curNode = northwest;
-    while (curNode != nullptr)
-    {
+    while (curNode != nullptr) {
         ImgNode *selectedNode = SelectNode(curNode, selectionmode);
 
-        if (selectedNode->north == nullptr && selectedNode->south == nullptr)
-        {
+        if (selectedNode->north == nullptr && selectedNode->south == nullptr) {
             // Do nothing
-        }
-        else if (selectedNode->north != nullptr && selectedNode->south != nullptr)
-        {
+        } else if (selectedNode->north != nullptr && selectedNode->south != nullptr) {
             selectedNode->north->south = selectedNode->south;
             selectedNode->south->north = selectedNode->north;
             selectedNode->south->skipup += (1 + selectedNode->skipup);
             selectedNode->north->skipdown += (1 + selectedNode->skipup);
-        }
-        else if (selectedNode->north == nullptr)
-        {
+        } else if (selectedNode->north == nullptr) {
             selectedNode->south->north = NULL;
             selectedNode->south->skipup += (1 + selectedNode->skipup);
-        }
-        else
-        {
+        } else {
             selectedNode->north->south = NULL;
             selectedNode->north->skipdown += (1 + selectedNode->skipup);
         }
@@ -485,22 +410,18 @@ void ImgList::Carve(int selectionmode)
  *       gaps are linked appropriately, and their skip values are updated to reflect
  *       the size of the gap.
  */
-void ImgList::Carve(unsigned int rounds, int selectionmode)
-{
+void ImgList::Carve(unsigned int rounds, int selectionmode) {
     // TODO: HAVE TO ENSURE THAT THE NUMBER OF ROUNDS DOES NOT EXCEED (width - 2)
     unsigned int dimensionX = GetDimensionX();
-    if (dimensionX < 2)
-    {
+    if (dimensionX < 2) {
         dimensionX = 2;
     }
 
-    if (rounds > (dimensionX - 2))
-    {
+    if (rounds > (dimensionX - 2)) {
         rounds = dimensionX - 2;
     }
 
-    for (unsigned int i = 0; i < rounds; i++)
-    {
+    for (unsigned int i = 0; i < rounds; i++) {
         Carve(selectionmode);
     }
 }
@@ -511,18 +432,15 @@ void ImgList::Carve(unsigned int rounds, int selectionmode)
  * @post this list has no currently allocated nor leaking heap memory,
  *       member attributes have values consistent with an empty list.
  */
-void ImgList::Clear()
-{
+void ImgList::Clear() {
     ImgNode *curRow = northwest;
     ImgNode *curNode;
     ImgNode *tmpNode;
 
-    while (curRow != nullptr)
-    {
+    while (curRow != nullptr) {
         curNode = curRow;
         curRow = curRow->south;
-        while (curNode != nullptr)
-        {
+        while (curNode != nullptr) {
             tmpNode = curNode;
             curNode = curNode->east;
             delete (tmpNode);
@@ -538,8 +456,10 @@ void ImgList::Clear()
  * @param otherlist - list whose contents will be copied
  * @post this list has contents copied from by physically separate from otherlist
  */
-void ImgList::Copy(const ImgList &otherlist)
-{
+void ImgList::Copy(const ImgList &otherlist) {
+
+    const ImgList *curList = &otherlist;
+    cout << curList->GetDimensionY();
 }
 
 /*************************************************************************************************
