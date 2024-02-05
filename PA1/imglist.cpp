@@ -35,6 +35,7 @@ ImgList::ImgList(PNG &img) {
 
     ImgNode *curNode;
 
+    // Alternative constructor if PNG height 1
     if (img.height() < 2) {
         ImgNode *tmpNode = new ImgNode();
         tmpNode->colour = *img.getPixel(0, 0);
@@ -457,9 +458,122 @@ void ImgList::Clear() {
  * @post this list has contents copied from by physically separate from otherlist
  */
 void ImgList::Copy(const ImgList &otherlist) {
+    Clear();
 
-    const ImgList *curList = &otherlist;
-    cout << curList->GetDimensionY();
+    int copyWidth = otherlist.GetDimensionX();
+    int copyHeight = otherlist.GetDimensionY();
+    ImgNode *curCol = otherlist.northwest;
+    ImgNode *tmpNode;
+    ImgNode *newNode;
+
+    // Alternative copy if otherList is height 1
+    if (copyHeight < 2) {
+        newNode = new ImgNode(*curCol);
+        northwest = newNode;
+        tmpNode = newNode;
+        curCol = curCol->east;
+
+        while (curCol != nullptr) {
+            newNode = new ImgNode(*curCol);
+            newNode->west = tmpNode;
+            tmpNode->east = newNode;
+            tmpNode = tmpNode->east;
+            curCol = curCol->east;
+        }
+
+        southeast = tmpNode;
+        return;
+    }
+
+    map<pair<int, int>, ImgNode *> cache2;
+    ImgNode *curNode = curCol;
+
+    int x = 0;
+    int y;
+    bool offByOne = true;
+    while (true) {
+        if (offByOne) {
+            y = copyHeight - 2;
+            curNode = curCol->south;
+        } else {
+            y = copyHeight - 1;
+            curNode = curCol;
+        }
+        while (true) {
+            tmpNode = new ImgNode(*curNode);
+            cache2[make_pair(x, y)] = tmpNode;
+            y -= 2;
+            if (curNode->south == nullptr) {
+                break;
+            } else if (curNode->south->south == nullptr) {
+                break;
+            }
+            curNode = curNode->south->south;
+        }
+        x++;
+        if (curCol->east == nullptr) {
+            break;
+        }
+        offByOne = !offByOne;
+        curCol = curCol->east;
+    }
+
+    x = 0;
+    curCol = otherlist.northwest;
+    offByOne = false;
+    while (true) {
+        if (offByOne) {
+            y = copyHeight - 2;
+            curNode = curCol->south;
+        } else {
+            y = copyHeight - 1;
+            curNode = curCol;
+        }
+        while (true) {
+            tmpNode = new ImgNode(*curNode);
+            try {
+                tmpNode->south = cache2.at(make_pair(x, y - 1));
+                tmpNode->south->north = tmpNode;
+            } catch (const out_of_range &e) {
+            }
+            try {
+                tmpNode->east = cache2.at(make_pair(x + 1, y));
+                tmpNode->east->west = tmpNode;
+            } catch (const out_of_range &e) {
+            }
+            try {
+                tmpNode->north = cache2.at(make_pair(x, y + 1));
+                tmpNode->north->south = tmpNode;
+            } catch (const out_of_range &e) {
+            }
+            try {
+                tmpNode->west = cache2.at(make_pair(x - 1, y));
+                tmpNode->west->east = tmpNode;
+            } catch (const out_of_range &e) {
+            }
+            cache2[make_pair(x, y)] = tmpNode;
+            y -= 2;
+            if (curNode->south == nullptr) {
+                break;
+            } else if (curNode->south->south == nullptr) {
+                break;
+            }
+            curNode = curNode->south->south;
+        }
+        x++;
+        if (curCol->east == nullptr) {
+            break;
+        }
+        offByOne = !offByOne;
+        curCol = curCol->east;
+    }
+
+    // entry point to the list; the upper-left corner of the image
+    northwest = cache2.at(make_pair(0, copyHeight - 1));
+    // last node in the list; the lower-right corner of the image
+    southeast = cache2.at(make_pair(copyWidth - 1, 0));
+    // Clear keys and pointers from map
+    cache2.clear();
 }
 
 /*************************************************************************************************

@@ -20,6 +20,7 @@ void TestRenderMode2();
 void Test5SmallPNG();
 void Test1SmallPNG();
 void comparePNG();
+void copyList();
 
 int main(void) {
 
@@ -31,6 +32,7 @@ int main(void) {
     Test5SmallPNG();
     Test1SmallPNG();
     comparePNG();
+    copyList();
 
     return 0;
 }
@@ -251,4 +253,45 @@ void comparePNG() {
     } else {
         cout << "Input PNG and output not equal" << endl;
     }
+}
+
+void copyList() {
+    cout << "Entered copyList function" << endl;
+
+    // PNG inimg;
+    // inimg.readFromFile("input-images/3x4.png");
+    // ImgList list3x4_target(inimg);
+
+    PNG inimg2;
+    inimg2.readFromFile("input-images/1x1.png");
+    ImgList list1x1_input(inimg2);
+
+    // list3x4_target = list1x1_input;
+
+    // PNG outputimg = list3x4_target.Render(false, 0);
+    // cout << "done." << endl;
+
+    // cout << "Writing output PNG to 1x1-r_0_0_copy.png... ";
+    // outputimg.writeToFile("output-images/1x1-r_0_0_copy.png");
+
+    // PNG inimg3;
+    // inimg3.readFromFile("input-images/1x5.png");
+
+    // ImgList list1x5(inimg3);
+    // list1x5.Carve(5, 0);
+
+    // list1x1_input = list1x5;
+    // PNG carved_copy = list1x1_input.Render(false, 0);
+    // cout << "done." << endl;
+
+    // cout << "Writing output PNG to carved_copy.png... ";
+    // carved_copy.writeToFile("output-images/carved_copy.png");
+
+    // ImgList *empty = new ImgList();
+    ImgList empty = list1x1_input;
+    // *empty = list1x5;
+
+    // PNG empty_copy = empty->Render(false, 0);
+    PNG empty_copy = empty.Render(false, 0);
+    empty_copy.writeToFile("output-images/empty_copy.png");
 }
