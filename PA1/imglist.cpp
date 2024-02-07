@@ -458,8 +458,6 @@ void ImgList::Clear() {
  * @post this list has contents copied from by physically separate from otherlist
  */
 void ImgList::Copy(const ImgList &otherlist) {
-    Clear();
-
     int copyWidth = otherlist.GetDimensionX();
     int copyHeight = otherlist.GetDimensionY();
     ImgNode *curCol = otherlist.northwest;
