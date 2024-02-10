@@ -23,8 +23,8 @@
  */
 ImgList::ImgList() {
     // set appropriate values for all member attributes here
-    northwest = nullptr;
-    southeast = nullptr;
+    northwest = NULL;
+    southeast = NULL;
 }
 
 /**
@@ -269,6 +269,10 @@ ImgNode *ImgList::SelectNode(ImgNode *rowstart, int selectionmode) {
  *             and the smaller-valued average for diametric hues
  */
 PNG ImgList::Render(bool fillgaps, int fillmode) const {
+    if (this->northwest == nullptr) {
+        return;
+    }
+
     PNG outpng(GetDimensionX(), GetDimensionY());
     ImgNode *curRow = northwest;
     ImgNode *curNode;
@@ -434,10 +438,6 @@ void ImgList::Carve(unsigned int rounds, int selectionmode) {
  *       member attributes have values consistent with an empty list.
  */
 void ImgList::Clear() {
-    if (northwest == nullptr) {
-        return;
-    }
-
     ImgNode *curRow = northwest;
     ImgNode *curNode;
     ImgNode *tmpNode;
@@ -451,8 +451,8 @@ void ImgList::Clear() {
             delete (tmpNode);
         }
     }
-    northwest = nullptr;
-    southeast = nullptr;
+    northwest = NULL;
+    southeast = NULL;
 }
 
 /**
@@ -462,125 +462,172 @@ void ImgList::Clear() {
  * @post this list has contents copied from by physically separate from otherlist
  */
 void ImgList::Copy(const ImgList &otherlist) {
+
     if (otherlist.northwest == nullptr) {
+        northwest = nullptr;
+        southeast = nullptr;
         return;
     }
+    // Create map to track new nodes
+    std::map<std::pair<int, int>, ImgNode *> newNodeMap;
 
-    int copyWidth = otherlist.GetDimensionX();
-    int copyHeight = otherlist.GetDimensionY();
-    ImgNode *curCol = otherlist.northwest;
-    ImgNode *tmpNode;
-    ImgNode *newNode;
+    // copy nodes row by row first
 
-    // Alternative copy if otherList is height 1
-    if (copyHeight < 2) {
-        newNode = new ImgNode(*curCol);
-        northwest = newNode;
-        tmpNode = newNode;
-        curCol = curCol->east;
+    for (ImgNode *row = otherlist.northwest; row != nullptr; row = row->south) {
+        ImgNode *prevNewNode = nullptr;
+        for (ImgNode *col = row; col != nullptr; col = col->east) {
+            ImgNode *newNode = new ImgNode(*col);
 
-        while (curCol != nullptr) {
-            newNode = new ImgNode(*curCol);
-            newNode->west = tmpNode;
-            tmpNode->east = newNode;
-            tmpNode = tmpNode->east;
-            curCol = curCol->east;
+            // Set east-west links
+
+            if (prevNewNode != nullptr) {
+                prevNewNode->east = newNode;
+                newNode->west = prevNewNode;
+            }
+
+            prevNewNode = newNode;
+
+            // Store new node in the map
+
+            unsigned int x = newNodeMap.size() % otherlist.GetDimensionX();
+            unsigned int y = newNodeMap.size() / otherlist.GetDimensionX();
+
+            newNodeMap[std::make_pair(x, y)] = newNode;
         }
-
-        southeast = tmpNode;
-        return;
     }
 
-    map<pair<int, int>, ImgNode *> cache2;
-    ImgNode *curNode = curCol;
+    // Set the north-south links
 
-    int x = 0;
-    int y;
-    bool offByOne = true;
-    while (true) {
-        if (offByOne) {
-            y = copyHeight - 2;
-            curNode = curCol->south;
-        } else {
-            y = copyHeight - 1;
-            curNode = curCol;
-        }
-        while (true) {
-            tmpNode = new ImgNode(*curNode);
-            cache2[make_pair(x, y)] = tmpNode;
-            y -= 2;
-            if (curNode->south == nullptr) {
-                break;
-            } else if (curNode->south->south == nullptr) {
-                break;
+    for (unsigned int y = 0; y < otherlist.GetDimensionY(); ++y) {
+        for (unsigned int x = 0; x < otherlist.GetDimensionX(); ++x) {
+            ImgNode *curNode = newNodeMap[std::make_pair(x, y)];
+
+            if (y > 0) {
+                curNode->north = newNodeMap[std::make_pair(x, y - 1)];
+                curNode->north->south = curNode;
             }
-            curNode = curNode->south->south;
         }
-        x++;
-        if (curCol->east == nullptr) {
-            break;
-        }
-        offByOne = !offByOne;
-        curCol = curCol->east;
     }
 
-    x = 0;
-    curCol = otherlist.northwest;
-    offByOne = false;
-    while (true) {
-        if (offByOne) {
-            y = copyHeight - 2;
-            curNode = curCol->south;
-        } else {
-            y = copyHeight - 1;
-            curNode = curCol;
-        }
-        while (true) {
-            tmpNode = new ImgNode(*curNode);
-            try {
-                tmpNode->south = cache2.at(make_pair(x, y - 1));
-                tmpNode->south->north = tmpNode;
-            } catch (const out_of_range &e) {
-            }
-            try {
-                tmpNode->east = cache2.at(make_pair(x + 1, y));
-                tmpNode->east->west = tmpNode;
-            } catch (const out_of_range &e) {
-            }
-            try {
-                tmpNode->north = cache2.at(make_pair(x, y + 1));
-                tmpNode->north->south = tmpNode;
-            } catch (const out_of_range &e) {
-            }
-            try {
-                tmpNode->west = cache2.at(make_pair(x - 1, y));
-                tmpNode->west->east = tmpNode;
-            } catch (const out_of_range &e) {
-            }
-            cache2[make_pair(x, y)] = tmpNode;
-            y -= 2;
-            if (curNode->south == nullptr) {
-                break;
-            } else if (curNode->south->south == nullptr) {
-                break;
-            }
-            curNode = curNode->south->south;
-        }
-        x++;
-        if (curCol->east == nullptr) {
-            break;
-        }
-        offByOne = !offByOne;
-        curCol = curCol->east;
-    }
+    // Set the northwest and southeast pointers
 
-    // entry point to the list; the upper-left corner of the image
-    northwest = cache2.at(make_pair(0, copyHeight - 1));
-    // last node in the list; the lower-right corner of the image
-    southeast = cache2.at(make_pair(copyWidth - 1, 0));
-    // Clear keys and pointers from map
-    cache2.clear();
+    northwest = newNodeMap[std::make_pair(otherlist.GetDimensionX() - 1, otherlist.GetDimensionY() - 1)];
 }
+// int copyWidth = otherlist.GetDimensionX();
+// int copyHeight = otherlist.GetDimensionY();
+// ImgNode *curCol = otherlist.northwest;
+// ImgNode *tmpNode;
+// ImgNode *newNode;
+
+// // Alternative copy if otherList is height 1
+// if (copyHeight < 2) {
+//     newNode = new ImgNode(*curCol);
+//     northwest = newNode;
+//     tmpNode = newNode;
+//     curCol = curCol->east;
+
+//     while (curCol != nullptr) {
+//         newNode = new ImgNode(*curCol);
+//         newNode->west = tmpNode;
+//         tmpNode->east = newNode;
+//         tmpNode = tmpNode->east;
+//         curCol = curCol->east;
+//     }
+
+//     southeast = tmpNode;
+//     return;
+// }
+
+// map<pair<int, int>, ImgNode *> cache2;
+// ImgNode *curNode = curCol;
+
+// int x = 0;
+// int y;
+// bool offByOne = true;
+// while (true) {
+//     if (offByOne) {
+//         y = copyHeight - 2;
+//         curNode = curCol->south;
+//     } else {
+//         y = copyHeight - 1;
+//         curNode = curCol;
+//     }
+//     while (true) {
+//         tmpNode = new ImgNode(*curNode);
+//         cache2[make_pair(x, y)] = tmpNode;
+//         y -= 2;
+//         if (curNode->south == nullptr) {
+//             break;
+//         } else if (curNode->south->south == nullptr) {
+//             break;
+//         }
+//         curNode = curNode->south->south;
+//     }
+//     x++;
+//     if (curCol->east == nullptr) {
+//         break;
+//     }
+//     offByOne = !offByOne;
+//     curCol = curCol->east;
+// }
+
+// x = 0;
+// curCol = otherlist.northwest;
+// offByOne = false;
+// while (true) {
+//     if (offByOne) {
+//         y = copyHeight - 2;
+//         curNode = curCol->south;
+//     } else {
+//         y = copyHeight - 1;
+//         curNode = curCol;
+//     }
+//     while (true) {
+//         tmpNode = new ImgNode(*curNode);
+//         try {
+//             tmpNode->south = cache2.at(make_pair(x, y - 1));
+//             tmpNode->south->north = tmpNode;
+//         } catch (const out_of_range &e) {
+//         }
+//         try {
+//             tmpNode->east = cache2.at(make_pair(x + 1, y));
+//             tmpNode->east->west = tmpNode;
+//         } catch (const out_of_range &e) {
+//         }
+//         try {
+//             tmpNode->north = cache2.at(make_pair(x, y + 1));
+//             tmpNode->north->south = tmpNode;
+//         } catch (const out_of_range &e) {
+//         }
+//         try {
+//             tmpNode->west = cache2.at(make_pair(x - 1, y));
+//             tmpNode->west->east = tmpNode;
+//         } catch (const out_of_range &e) {
+//         }
+//         cache2[make_pair(x, y)] = tmpNode;
+//         y -= 2;
+//         if (curNode->south == nullptr) {
+//             break;
+//         } else if (curNode->south->south == nullptr) {
+//             break;
+//         }
+//         curNode = curNode->south->south;
+//     }
+//     x++;
+//     if (curCol->east == nullptr) {
+//         break;
+//     }
+//     offByOne = !offByOne;
+//     curCol = curCol->east;
+// }
+
+// // entry point to the list; the upper-left corner of the image
+// northwest = cache2.at(make_pair(0, copyHeight - 1));
+// // last node in the list; the lower-right corner of the image
+// southeast = cache2.at(make_pair(copyWidth - 1, 0));
+// // Clear keys and pointers from map
+// cache2.clear();
+// }
 
 /*************************************************************************************************
  * IF YOU DEFINED YOUR OWN PRIVATE FUNCTIONS IN imglist-private.h, YOU MAY ADD YOUR IMPLEMENTATIONS BELOW *

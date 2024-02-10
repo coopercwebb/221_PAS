@@ -258,13 +258,17 @@ void comparePNG() {
 void copyList() {
     cout << "Entered copyList function" << endl;
 
-    // PNG inimg;
-    // inimg.readFromFile("input-images/3x4.png");
-    // ImgList list3x4_target(inimg);
+    PNG inimg;
+    inimg.readFromFile("input-images/3x4.png");
+    ImgList list3x4_target(inimg);
 
     PNG inimg2;
     inimg2.readFromFile("input-images/1x1.png");
     ImgList list1x1_input(inimg2);
+
+    PNG inimg3;
+    inimg3.readFromFile("input-images/1x5.png");
+    ImgList list1x5_input(inimg3);
 
     // list3x4_target = list1x1_input;
 
@@ -288,10 +292,41 @@ void copyList() {
     // carved_copy.writeToFile("output-images/carved_copy.png");
 
     // ImgList *empty = new ImgList();
-    ImgList empty = list1x1_input;
+    // ImgList empty = list3x4_target;
+
     // *empty = list1x5;
 
-    // PNG empty_copy = empty->Render(false, 0);
-    PNG empty_copy = empty.Render(false, 0);
+    // list1x5_input = empty;
+    // PNG empty_copy = list1x5_input.Render(false, 0);
+    // empty_copy.writeToFile("output-images/empty_copy.png");
+
+    // empty = list1x5_input;
+
+    // PNG empty_copy = empty.Render(false, 0);
+    // empty_copy.writeToFile("output-images/empty_copy.png");
+
+    // empty = list1x5_input;
+    // PNG empty1x5_copy = empty.Render(false, 0);
+    // empty1x5_copy.writeToFile("output-images/empty_copy1x5.png");
+
+    // list1x5_input = empty;
+
+    // Size 1 tests
+    ImgList empty;
+
+    // list1x1_input = list1x5_input;
+    // PNG list1x5_copy = list1x1_input.Render(false, 0);
+    // list1x5_copy.writeToFile("output-images/list1x5_copy.png");
+
+    // list1x5_input = list1x1_input;
+    // PNG list1x1_copy = list1x5_input.Render(false, 0);
+    // list1x1_copy.writeToFile("output-images/list1x1_copy.png");
+
+    // empty = list1x1_input;
+    // PNG list1x1_copy = empty.Render(false, 0);
+    // list1x1_copy.writeToFile("output-images/list1x1_copy.png");
+
+    list1x1_input = empty;
+    PNG empty_copy = list1x1_input.Render(false, 0);
     empty_copy.writeToFile("output-images/empty_copy.png");
 }
