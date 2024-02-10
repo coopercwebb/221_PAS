@@ -377,7 +377,7 @@ void ImgList::Carve(int selectionmode) {
             selectedNode->south->skipup += (1 + selectedNode->skipup);
             selectedNode->north->skipdown += (1 + selectedNode->skipup);
         } else if (selectedNode->north == nullptr) {
-            selectedNode->south->north = NULL;
+            selectedNode->south->north = nullptr;
             selectedNode->south->skipup += (1 + selectedNode->skipup);
         } else {
             selectedNode->north->south = NULL;
@@ -466,7 +466,7 @@ void ImgList::Copy(const ImgList &otherlist) {
         return;
     }
 
-    int copyWidth = otherlist.GetDimensionX();
+    int copyWidth = otherlist.GetDimensionFullX();
     int copyHeight = otherlist.GetDimensionY();
     ImgNode *curCol = otherlist.northwest;
     ImgNode *tmpNode;
@@ -492,93 +492,68 @@ void ImgList::Copy(const ImgList &otherlist) {
     }
 
     map<pair<int, int>, ImgNode *> cache2;
-    ImgNode *curNode = curCol;
+    ImgNode *curNode = otherlist.northwest;
+    ImgNode *oldNewNode = nullptr;
+    ImgNode *rowParser;
 
-    int x = 0;
-    int y;
-    bool offByOne = true;
-    while (true) {
-        if (offByOne) {
-            y = copyHeight - 2;
-            curNode = curCol->south;
-        } else {
-            y = copyHeight - 1;
-            curNode = curCol;
-        }
-        while (true) {
-            tmpNode = new ImgNode(*curNode);
-            cache2[make_pair(x, y)] = tmpNode;
-            y -= 2;
-            if (curNode->south == nullptr) {
-                break;
-            } else if (curNode->south->south == nullptr) {
-                break;
+    // go through every row and cache with original coordinates
+    unsigned int x = 0;
+    unsigned int y = copyHeight - 1;
+    while (curNode != nullptr) {
+        rowParser = curNode;
+        while (rowParser != nullptr) {
+            newNode = new ImgNode(*rowParser);
+            if (oldNewNode != nullptr) {
+                oldNewNode->east = newNode;
+                newNode->west = oldNewNode;
             }
-            curNode = curNode->south->south;
+            cache2[make_pair(x, y)] = newNode;
+            x += (1 + newNode->skipright);
+            rowParser = rowParser->east;
+            oldNewNode = newNode;
         }
-        x++;
-        if (curCol->east == nullptr) {
-            break;
-        }
-        offByOne = !offByOne;
-        curCol = curCol->east;
+        x = 0;
+        y--;
+        curNode = curNode->south;
+        oldNewNode = nullptr;
     }
+
+    northwest = cache2.at(make_pair(0, copyHeight - 1));
+    southeast = cache2.at(make_pair(copyWidth - 1, 0));
 
     x = 0;
-    curCol = otherlist.northwest;
-    offByOne = false;
-    while (true) {
-        if (offByOne) {
-            y = copyHeight - 2;
-            curNode = curCol->south;
-        } else {
-            y = copyHeight - 1;
-            curNode = curCol;
+    y = copyHeight - 1;
+    // go through every row in the new linkedlist, via cache coordinates
+    while (y >= 0) {
+        rowParser = cache2.at(make_pair(0, y));
+        while (rowParser != nullptr) {
+            try {
+                rowParser->south = cache2.at(make_pair(x, y - (1 + rowParser->skipdown)));
+                rowParser->south->north = rowParser;
+            } catch (const out_of_range &e) {
+            }
+            try {
+                rowParser->east = cache2.at(make_pair(x + (1 + rowParser->skipright), y));
+                rowParser->east->west = rowParser;
+            } catch (const out_of_range &e) {
+            }
+            try {
+                rowParser->north = cache2.at(make_pair(x, y + (1 + rowParser->skipup)));
+                rowParser->north->south = rowParser;
+            } catch (const out_of_range &e) {
+            }
+            try {
+                rowParser->west = cache2.at(make_pair(x - (1 + rowParser->skipleft), y));
+                rowParser->west->east = rowParser;
+            } catch (const out_of_range &e) {
+            }
+            rowParser = rowParser->east;
+            x += (1 + rowParser->skipright);
         }
-        while (true) {
-            tmpNode = new ImgNode(*curNode);
-            try {
-                tmpNode->south = cache2.at(make_pair(x, y - 1));
-                tmpNode->south->north = tmpNode;
-            } catch (const out_of_range &e) {
-            }
-            try {
-                tmpNode->east = cache2.at(make_pair(x + 1, y));
-                tmpNode->east->west = tmpNode;
-            } catch (const out_of_range &e) {
-            }
-            try {
-                tmpNode->north = cache2.at(make_pair(x, y + 1));
-                tmpNode->north->south = tmpNode;
-            } catch (const out_of_range &e) {
-            }
-            try {
-                tmpNode->west = cache2.at(make_pair(x - 1, y));
-                tmpNode->west->east = tmpNode;
-            } catch (const out_of_range &e) {
-            }
-            cache2[make_pair(x, y)] = tmpNode;
-            y -= 2;
-            if (curNode->south == nullptr) {
-                break;
-            } else if (curNode->south->south == nullptr) {
-                break;
-            }
-            curNode = curNode->south->south;
-        }
-        x++;
-        if (curCol->east == nullptr) {
-            break;
-        }
-        offByOne = !offByOne;
-        curCol = curCol->east;
+        x = 0;
+        y--;
     }
 
-    // entry point to the list; the upper-left corner of the image
-    northwest = cache2.at(make_pair(0, copyHeight - 1));
-    // last node in the list; the lower-right corner of the image
-    southeast = cache2.at(make_pair(copyWidth - 1, 0));
-    // Clear keys and pointers from map
     cache2.clear();
 }
 

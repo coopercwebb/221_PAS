@@ -270,6 +270,14 @@ void copyList() {
     inimg3.readFromFile("input-images/1x5.png");
     ImgList list1x5_input(inimg3);
 
+    PNG inimg4;
+    inimg4.readFromFile("input-images/5x6.png");
+    ImgList list5x6_input(inimg4);
+
+    list5x6_input.Carve(2, 0);
+    PNG list5x6_input_carved2 = list5x6_input.Render(false, 0);
+    list5x6_input_carved2.writeToFile("output-images/list5x6_input_carved2.png");
+
     // list3x4_target = list1x1_input;
 
     // PNG outputimg = list3x4_target.Render(false, 0);
@@ -326,7 +334,11 @@ void copyList() {
     // PNG list1x1_copy = empty.Render(false, 0);
     // list1x1_copy.writeToFile("output-images/list1x1_copy.png");
 
-    list1x1_input = empty;
-    PNG empty_copy = list1x1_input.Render(false, 0);
+    // list1x1_input = empty;
+    // PNG empty_copy = list1x1_input.Render(false, 0);
+    // empty_copy.writeToFile("output-images/empty_copy.png");
+
+    empty = list5x6_input;
+    PNG empty_copy = empty.Render(false, 0);
     empty_copy.writeToFile("output-images/empty_copy.png");
 }
