@@ -468,37 +468,16 @@ void ImgList::Copy(const ImgList &otherlist) {
 
     int copyWidth = otherlist.GetDimensionFullX();
     int copyHeight = otherlist.GetDimensionY();
-    ImgNode *curCol = otherlist.northwest;
-    ImgNode *tmpNode;
-    ImgNode *newNode;
-
-    // Alternative copy if otherList is height 1
-    if (copyHeight < 2) {
-        newNode = new ImgNode(*curCol);
-        northwest = newNode;
-        tmpNode = newNode;
-        curCol = curCol->east;
-
-        while (curCol != nullptr) {
-            newNode = new ImgNode(*curCol);
-            newNode->west = tmpNode;
-            tmpNode->east = newNode;
-            tmpNode = tmpNode->east;
-            curCol = curCol->east;
-        }
-
-        southeast = tmpNode;
-        return;
-    }
 
     map<pair<int, int>, ImgNode *> cache2;
     ImgNode *curNode = otherlist.northwest;
     ImgNode *oldNewNode = nullptr;
+    ImgNode *newNode = nullptr;
     ImgNode *rowParser;
 
     // go through every row and cache with original coordinates
-    unsigned int x = 0;
-    unsigned int y = copyHeight - 1;
+    int x = 0;
+    int y = copyHeight - 1;
     while (curNode != nullptr) {
         rowParser = curNode;
         while (rowParser != nullptr) {
@@ -533,22 +512,12 @@ void ImgList::Copy(const ImgList &otherlist) {
             } catch (const out_of_range &e) {
             }
             try {
-                rowParser->east = cache2.at(make_pair(x + (1 + rowParser->skipright), y));
-                rowParser->east->west = rowParser;
-            } catch (const out_of_range &e) {
-            }
-            try {
                 rowParser->north = cache2.at(make_pair(x, y + (1 + rowParser->skipup)));
                 rowParser->north->south = rowParser;
             } catch (const out_of_range &e) {
             }
-            try {
-                rowParser->west = cache2.at(make_pair(x - (1 + rowParser->skipleft), y));
-                rowParser->west->east = rowParser;
-            } catch (const out_of_range &e) {
-            }
-            rowParser = rowParser->east;
             x += (1 + rowParser->skipright);
+            rowParser = rowParser->east;
         }
         x = 0;
         y--;
