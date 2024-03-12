@@ -111,13 +111,72 @@ animation filler::Fill(FillerConfig &config) {
     // HINT: you will likely want to declare some kind of structure to track
     //       which pixels have already been visited
     set<pair<int, int>> visited_coords;
-    visited_coords.insert(MakePixelCoordPair(config.seedpoint));
-
+    visited_coords.insert(make_pair(config.seedpoint.x, config.seedpoint.y));
     os.Add(config.seedpoint);
 
     while (!os.IsEmpty()) {
         PixelPoint removed = os.Remove();
-        AddNeighbors(config, os, visited_coords, removed);
+        // We only want to add to the os, if the RGBAPixel color distanceTo is within the
+        // tolerance
+        // Add all visited pixels to visited_coords regardless of threshold outcome
+
+        // Need bounds checking on neighboring pixels, check if it is within the img bounds,
+        // not less than 0 for x and y
+        // not equal to or greater than the width and height of the img
+
+        // Remember x=0, y=0 equals the top left of the img
+        RGBAPixel *cur_pixel;
+        int cur_x;
+        int cur_y;
+        // Check North
+        if (visited_coords.find(make_pair(removed.x, removed.y - 1)) == visited_coords.end() &&
+            removed.y != 0) {
+            cur_x = removed.x;
+            cur_y = removed.y - 1;
+            visited_coords.insert(make_pair(cur_x, cur_y));
+            cur_pixel = config.img.getPixel(cur_x, cur_y);
+            if (cur_pixel->distanceTo(config.seedpoint.color) <= config.tolerance) {
+                PixelPoint cur_pixel_point(cur_x, cur_y, *cur_pixel);
+                os.Add(cur_pixel_point);
+            }
+        }
+        // Check East
+        if (visited_coords.find(make_pair(removed.x + 1, removed.y)) == visited_coords.end() &&
+            removed.x + 1 < config.img.width()) {
+            cur_x = removed.x + 1;
+            cur_y = removed.y;
+            visited_coords.insert(make_pair(cur_x, cur_y));
+            cur_pixel = config.img.getPixel(cur_x, cur_y);
+            if (cur_pixel->distanceTo(config.seedpoint.color) <= config.tolerance) {
+                PixelPoint cur_pixel_point(cur_x, cur_y, *cur_pixel);
+                os.Add(cur_pixel_point);
+            }
+        }
+        // Check South
+        if (visited_coords.find(make_pair(removed.x, removed.y + 1)) == visited_coords.end() &&
+            removed.y + 1 < config.img.height()) {
+            cur_x = removed.x;
+            cur_y = removed.y + 1;
+            visited_coords.insert(make_pair(cur_x, cur_y));
+            cur_pixel = config.img.getPixel(cur_x, cur_y);
+            if (cur_pixel->distanceTo(config.seedpoint.color) <= config.tolerance) {
+                PixelPoint cur_pixel_point(cur_x, cur_y, *cur_pixel);
+                os.Add(cur_pixel_point);
+            }
+        }
+        // Check West
+        if (visited_coords.find(make_pair(removed.x - 1, removed.y)) == visited_coords.end() &&
+            removed.x != 0) {
+            cur_x = removed.x - 1;
+            cur_y = removed.y;
+            visited_coords.insert(make_pair(cur_x, cur_y));
+            cur_pixel = config.img.getPixel(cur_x, cur_y);
+            if (cur_pixel->distanceTo(config.seedpoint.color) <= config.tolerance) {
+                PixelPoint cur_pixel_point(cur_x, cur_y, *cur_pixel);
+                os.Add(cur_pixel_point);
+            }
+        }
+
         RGBAPixel *p = config.img.getPixel(removed.x, removed.y);
         *p = (*(config.picker))(removed);
         framecount++;
@@ -129,72 +188,4 @@ animation filler::Fill(FillerConfig &config) {
 
     anim.addFrame(config.img);
     return anim;
-}
-
-pair<int, int> filler::MakePixelCoordPair(PixelPoint p) {
-    return make_pair(p.x, p.y);
-}
-
-void filler::AddNeighbors(FillerConfig &config, OrderingStructure<PixelPoint> &os, set<pair<int, int>> &visited_coords, PixelPoint p) {
-    // We only want to add to the os, if the RGBAPixel color distanceTo is within the
-    // tolerance
-    // Add all visited pixels to visited_coords regardless of threshold outcome
-
-    // Need bounds checking on neighboring pixels, check if it is within the img bounds,
-    // not less than 0 for x and y
-    // not equal to or greater than the width and height of the img
-
-    // Remember x=0, y=0 equals the top left of the img
-
-    RGBAPixel *cur_pixel;
-    int cur_x;
-    int cur_y;
-    // Check North
-    if (visited_coords.find(make_pair(p.x, p.y - 1)) == visited_coords.end() &&
-        p.y != 0) {
-        cur_x = p.x;
-        cur_y = p.y - 1;
-        visited_coords.insert(make_pair(cur_x, cur_y));
-        cur_pixel = config.img.getPixel(cur_x, cur_y);
-        if (cur_pixel->distanceTo(config.seedpoint.color) <= config.tolerance) {
-            PixelPoint cur_pixel_point(cur_x, cur_y, *cur_pixel);
-            os.Add(cur_pixel_point);
-        }
-    }
-    // Check East
-    if (visited_coords.find(make_pair(p.x + 1, p.y)) == visited_coords.end() &&
-        p.x + 1 < config.img.width()) {
-        cur_x = p.x + 1;
-        cur_y = p.y;
-        visited_coords.insert(make_pair(cur_x, cur_y));
-        cur_pixel = config.img.getPixel(cur_x, cur_y);
-        if (cur_pixel->distanceTo(config.seedpoint.color) <= config.tolerance) {
-            PixelPoint cur_pixel_point(cur_x, cur_y, *cur_pixel);
-            os.Add(cur_pixel_point);
-        }
-    }
-    // Check South
-    if (visited_coords.find(make_pair(p.x, p.y + 1)) == visited_coords.end() &&
-        p.y + 1 < config.img.height()) {
-        cur_x = p.x;
-        cur_y = p.y + 1;
-        visited_coords.insert(make_pair(cur_x, cur_y));
-        cur_pixel = config.img.getPixel(cur_x, cur_y);
-        if (cur_pixel->distanceTo(config.seedpoint.color) <= config.tolerance) {
-            PixelPoint cur_pixel_point(cur_x, cur_y, *cur_pixel);
-            os.Add(cur_pixel_point);
-        }
-    }
-    // Check West
-    if (visited_coords.find(make_pair(p.x - 1, p.y)) == visited_coords.end() &&
-        p.x != 0) {
-        cur_x = p.x - 1;
-        cur_y = p.y;
-        visited_coords.insert(make_pair(cur_x, cur_y));
-        cur_pixel = config.img.getPixel(cur_x, cur_y);
-        if (cur_pixel->distanceTo(config.seedpoint.color) <= config.tolerance) {
-            PixelPoint cur_pixel_point(cur_x, cur_y, *cur_pixel);
-            os.Add(cur_pixel_point);
-        }
-    }
 }

@@ -92,16 +92,16 @@ TEST_CASE("colorPicker::basic stripe", "[weight=1][part=colorPicker]") {
     cout << "Entered colorPicker::basic stripe..." << endl;
 
     // TODO: bugged test?
-    // PNG imgtest, imgother;
-    // imgtest.readFromFile(STRIPETESTIMAGE);
+    PNG imgtest, imgother;
+    imgtest.readFromFile(STRIPETESTIMAGE);
 
-    // StripeColorPicker stripePicker(STRIPEWIDTH, RGBAPixel(255, 96, 96), RGBAPixel(255, 196, 196));
+    StripeColorPicker stripePicker(STRIPEWIDTH, RGBAPixel(255, 96, 96), RGBAPixel(255, 196, 196));
 
-    // PNG result = testColorPicker(stripePicker); // result.convert();
-    // result.writeToFile("images-output/stripeColorPickerTest.png");
-    // PNG expected;
-    // expected.readFromFile("images-soln/ex-stripeColorPickerTest.png");
-    // REQUIRE(result == expected);
+    PNG result = testColorPicker(stripePicker); // result.convert();
+    result.writeToFile("images-output/stripeColorPickerTest.png");
+    PNG expected;
+    expected.readFromFile("images-soln/ex-stripeColorPickerTest.png");
+    REQUIRE(result == expected);
 
     cout << "Leaving colorPicker::basic stripe..." << endl;
 }
@@ -111,16 +111,16 @@ TEST_CASE("colorPicker::basic quarter", "[weight=1][part=colorPicker]") {
     cout << "Entered colorPicker::basic quarter..." << endl;
 
     // TODO: bugged test?
-    // PNG imgtest;
-    // imgtest.readFromFile(FUNCTORTESTIMAGEP);
+    PNG imgtest;
+    imgtest.readFromFile(FUNCTORTESTIMAGEP);
 
-    // QuarterColorPicker quarterPicker(imgtest, QUARTERBRIGHT);
+    QuarterColorPicker quarterPicker(imgtest, QUARTERBRIGHT);
 
-    // PNG result = testColorPicker(quarterPicker); // result.convert();
-    // result.writeToFile("images-output/quarterColorPickerTest.png");
-    // PNG expected;
-    // expected.readFromFile("images-soln/ex-quarterColorPickerTest.png"); // expected.convert();
-    // REQUIRE(result == expected);
+    PNG result = testColorPicker(quarterPicker); // result.convert();
+    result.writeToFile("images-output/quarterColorPickerTest.png");
+    PNG expected;
+    expected.readFromFile("images-soln/ex-quarterColorPickerTest.png"); // expected.convert();
+    REQUIRE(result == expected);
 
     cout << "Leaving colorPicker::basic quarter..." << endl;
 }
@@ -130,16 +130,16 @@ TEST_CASE("colorPicker::basic border", "[weight=1][part=colorPicker]") {
     cout << "Entered colorPicker::basic border..." << endl;
 
     // TODO: bugged test?
-    // PNG imgtest;
-    // imgtest.readFromFile(FUNCTORTESTIMAGEW);
-    // PixelPoint p(BORDERX, BORDERY, *(imgtest.getPixel(BORDERX, BORDERY)));
-    // BorderColorPicker borderPicker(BORDERWIDTH, imgtest, *(imgtest.getPixel(BORDERX, BORDERY)), RGBAPixel(0, 255, 0), BORDERTOLERANCE);
+    PNG imgtest;
+    imgtest.readFromFile(FUNCTORTESTIMAGEW);
+    PixelPoint p(BORDERX, BORDERY, *(imgtest.getPixel(BORDERX, BORDERY)));
+    BorderColorPicker borderPicker(BORDERWIDTH, imgtest, *(imgtest.getPixel(BORDERX, BORDERY)), RGBAPixel(0, 255, 0), BORDERTOLERANCE);
 
-    // PNG result = testColorPicker(borderPicker); // result.convert();
-    // result.writeToFile("images-output/borderColorPickerTest.png");
-    // PNG expected;
-    // expected.readFromFile("images-soln/ex-borderColorPickerTest.png");
-    // REQUIRE(result == expected);
+    PNG result = testColorPicker(borderPicker); // result.convert();
+    result.writeToFile("images-output/borderColorPickerTest.png");
+    PNG expected;
+    expected.readFromFile("images-soln/ex-borderColorPickerTest.png");
+    REQUIRE(result == expected);
 
     cout << "Leaving colorPicker::basic border..." << endl;
 }

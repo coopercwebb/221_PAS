@@ -5,3 +5,5 @@ PA1/testimglist
 /PA2/frames-output/*
 /PA2/images-output/*
 *.DS_Store
+/PA2/testFills
+/PA2/testStackQueue

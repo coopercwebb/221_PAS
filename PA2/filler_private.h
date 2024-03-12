@@ -10,9 +10,3 @@
  */
 
 // begin your declarations below
-
-#include "filler.h"
-
-pair<int, int> MakePixelCoordPair(PixelPoint p);
-
-void AddNeighbors(FillerConfig &config, OrderingStructure<PixelPoint> &os, set<pair<int, int>> &visited_coords, PixelPoint p);
