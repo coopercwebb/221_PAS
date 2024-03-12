@@ -2,3 +2,4 @@
 *.o
 PA1/testimglist
 /PA1/*.o
+.DS_Store
