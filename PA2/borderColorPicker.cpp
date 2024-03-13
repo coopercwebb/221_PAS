@@ -36,6 +36,10 @@ BorderColorPicker::BorderColorPicker(unsigned int width, PNG &inputimage, RGBAPi
  */
 RGBAPixel BorderColorPicker::operator()(PixelPoint p) {
     // Replace the line below with your implementation
+    RGBAPixel original_pixel = *img.getPixel(p.x, p.y);
+    if (original_pixel.distanceTo(seedcolor) > tolerance) {
+        return original_pixel;
+    }
 
     for (int x = -borderwidth; x <= (int)borderwidth; x++) {
         for (int y = -borderwidth; y <= (int)borderwidth; y++) {
@@ -55,7 +59,7 @@ RGBAPixel BorderColorPicker::operator()(PixelPoint p) {
         }
     }
 
-    return *img.getPixel(p.x, p.y);
+    return original_pixel;
 }
 
 /**
