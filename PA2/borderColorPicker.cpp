@@ -5,8 +5,8 @@
  *
  *              THIS FILE WILL BE SUBMITTED
  */
-
 #include "borderColorPicker.h"
+#include <cstdlib>
 
 /**
  * Constructs a new BorderColorPicker.
@@ -16,10 +16,13 @@
  * @param bcolor       Color to be used for painting the fill border.
  * @param tol          Tolerance used to determine the border of the fill.
  */
-BorderColorPicker::BorderColorPicker(unsigned int width, PNG& inputimage, RGBAPixel scolor, RGBAPixel bcolor, double tol)
-{
+BorderColorPicker::BorderColorPicker(unsigned int width, PNG &inputimage, RGBAPixel scolor, RGBAPixel bcolor, double tol) {
     // Complete your implementation below
-	
+    borderwidth = width;
+    img = inputimage;
+    seedcolor = scolor;
+    bordercolor = bcolor;
+    tolerance = tol;
 }
 
 /**
@@ -31,10 +34,27 @@ BorderColorPicker::BorderColorPicker(unsigned int width, PNG& inputimage, RGBAPi
  * @param p   The point for which you're picking a color.
  * @return    The color chosen for (p).
  */
-RGBAPixel BorderColorPicker::operator()(PixelPoint p)
-{
+RGBAPixel BorderColorPicker::operator()(PixelPoint p) {
     // Replace the line below with your implementation
-    return RGBAPixel();
+
+    for (int x = -borderwidth; x <= (int)borderwidth; x++) {
+        for (int y = -borderwidth; y <= (int)borderwidth; y++) {
+            unsigned int squared_distance = x * x + y * y;
+            if (squared_distance <= borderwidth * borderwidth) {
+                int true_x = p.x + x;
+                int true_y = p.y + y;
+                // bounds checking before continuing
+                if (true_x < 0 || true_y < 0 || true_x >= (int)img.width() || true_y >= (int)img.height()) {
+                    return bordercolor;
+                }
+                RGBAPixel *curPixel = img.getPixel(true_x, true_y);
+                if (curPixel->distanceTo(seedcolor) > tolerance) {
+                    return bordercolor;
+                }
+            }
+        }
+    }
+    return p.color;
 }
 
 /**

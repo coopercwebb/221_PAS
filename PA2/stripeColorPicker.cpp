@@ -19,9 +19,9 @@ StripeColorPicker::StripeColorPicker(unsigned int stripe_width,
                                      RGBAPixel stripe_color1,
                                      RGBAPixel stripe_color2) {
     // Complete your implementation below
-    // stripewidth = stripe_width;
-    // color1 = stripe_color1;
-    // color2 = stripe_color2;
+    stripewidth = stripe_width;
+    color1 = stripe_color1;
+    color2 = stripe_color2;
 }
 
 /**
@@ -38,14 +38,24 @@ StripeColorPicker::StripeColorPicker(unsigned int stripe_width,
  */
 RGBAPixel StripeColorPicker::operator()(PixelPoint p) {
     // Replace the line below with your implementation
-    // if (p.x % (2 * stripewidth) >= stripewidth &&
-    //     p.y % (2 * stripewidth) < stripewidth) {
+    int x_threshold = stripewidth - (p.y % stripewidth);
+
+    // if (p.x % (2 * stripewidth) >= x_threshold &&
+    //     p.y % (2 * stripewidth) < x_threshold) {
     //     return color2;
-    // } else if (p.x % (2 * stripewidth) < stripewidth &&
-    //            p.y % (2 * stripewidth) >= stripewidth) {
+    // } else if (p.x % (2 * stripewidth) < x_threshold &&
+    //            p.y % (2 * stripewidth) >= x_threshold) {
     //     return color2;
     // }
-    // return color1;
+    if (p.x % (2 * stripewidth) >= x_threshold &&
+        p.y % (2 * stripewidth) < x_threshold) {
+        if (p.x % (2 * stripewidth) < x_threshold &&
+            p.y % (2 * stripewidth) >= x_threshold) {
+            return color2;
+        }
+    }
+
+    return color1;
     return RGBAPixel();
 }
 
