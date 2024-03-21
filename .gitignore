@@ -7,3 +7,5 @@ PA1/testimglist
 *.DS_Store
 /PA2/testFills
 /PA2/testStackQueue
+/PA3/testpa3
+/PA3/images-output/*

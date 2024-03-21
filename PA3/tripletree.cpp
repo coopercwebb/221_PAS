@@ -7,59 +7,62 @@
 
 #include "tripletree.h"
 
- /**
-      * Constructor that builds a TripleTree out of the given PNG.
-      *
-      * The TripleTree represents the subimage from (0,0) to (w-1, h-1) where
-      * w-1 and h-1 are the largest valid image coordinates of the original PNG.
-      * Every node corresponds to a rectangle of pixels in the original PNG,
-      * represented by an (x,y) pair for the upper left corner of the
-      * square and two integers for the number of pixels on the width and
-      * height dimensions of the rectangular region the node defines.
-      *
-      * The node's three children correspond to a partition
-      * of the node's rectangular region into three approximately equal-size strips.
-      *
-      * If the rectangular region is taller than it is wide, the region is divided
-      * into horizontal strips:
-      *  +-------+
-      *  |   A   |
-      *  |       |
-      *  +-------+
-      *  |   B   |
-      *  |       |    (Split tall)
-      *  +-------+
-      *  |   C   |
-      *  |       |
-      *  +-------+
-      *
-      * If the rectangular region is wider than it is tall, the region is divided
-      * into vertical strips:
-      *  +---------+---------+---------+
-      *  |    A    |    B    |    C    |
-      *  |         |         |         |    (Split wide)
-      *  +---------+---------+---------+
-      *
-      * Your regions are not guaranteed to have dimensions exactly divisible by 3.
-      * If the dimensions of your rectangular region are 3p x q or q x 3p where 3p
-      * represents the length of the long side, then your rectangular regions will
-      * each have dimensions p x q (or q x p)
-      *
-      * If the dimensions are (3p+1) x q, subregion B gets the extra pixel of size
-      * while subregions A and C have dimensions p x q.
-      *
-      * If the dimensions are (3p+2) x q, subregions A and C each get an extra pixel
-      * of size, while subregion B has dimensions p x q.
-      *
-      * If the region to be divided is a square, then apply the Split wide behaviour.
-      *
-      * Every leaf in the constructed tree corresponds to a pixel in the PNG.
-      *
-      * @param imIn - the input image used to construct the tree
-      */
-TripleTree::TripleTree(PNG& imIn) {
+/**
+ * Constructor that builds a TripleTree out of the given PNG.
+ *
+ * The TripleTree represents the subimage from (0,0) to (w-1, h-1) where
+ * w-1 and h-1 are the largest valid image coordinates of the original PNG.
+ * Every node corresponds to a rectangle of pixels in the original PNG,
+ * represented by an (x,y) pair for the upper left corner of the
+ * square and two integers for the number of pixels on the width and
+ * height dimensions of the rectangular region the node defines.
+ *
+ * The node's three children correspond to a partition
+ * of the node's rectangular region into three approximately equal-size strips.
+ *
+ * If the rectangular region is taller than it is wide, the region is divided
+ * into horizontal strips:
+ *  +-------+
+ *  |   A   |
+ *  |       |
+ *  +-------+
+ *  |   B   |
+ *  |       |    (Split tall)
+ *  +-------+
+ *  |   C   |
+ *  |       |
+ *  +-------+
+ *
+ * If the rectangular region is wider than it is tall, the region is divided
+ * into vertical strips:
+ *  +---------+---------+---------+
+ *  |    A    |    B    |    C    |
+ *  |         |         |         |    (Split wide)
+ *  +---------+---------+---------+
+ *
+ * Your regions are not guaranteed to have dimensions exactly divisible by 3.
+ * If the dimensions of your rectangular region are 3p x q or q x 3p where 3p
+ * represents the length of the long side, then your rectangular regions will
+ * each have dimensions p x q (or q x p)
+ *
+ * If the dimensions are (3p+1) x q, subregion B gets the extra pixel of size
+ * while subregions A and C have dimensions p x q.
+ *
+ * If the dimensions are (3p+2) x q, subregions A and C each get an extra pixel
+ * of size, while subregion B has dimensions p x q.
+ *
+ * If the region to be divided is a square, then apply the Split wide behaviour.
+ *
+ * Every leaf in the constructed tree corresponds to a pixel in the PNG.
+ *
+ * @param imIn - the input image used to construct the tree
+ */
+TripleTree::TripleTree(PNG &imIn) {
     // add your implementation below
-	
+
+    // Should be constructed recursively, assigning avg color on the way up
+    pair<unsigned int, unsigned int> entry_pixel = make_pair(0, 0);
+    root = BuildNode(imIn, entry_pixel, imIn.width(), imIn.height());
 }
 
 /**
@@ -72,7 +75,45 @@ TripleTree::TripleTree(PNG& imIn) {
  */
 PNG TripleTree::Render() const {
     // replace the line below with your implementation
-    return PNG();
+    PNG *returnPNG = new PNG(root->width, root->height);
+    RenderHelper(root, *returnPNG);
+
+    return *returnPNG;
+}
+
+void TripleTree::RenderHelper(const Node *n, PNG &render_img) const {
+    if (n == nullptr) {
+        return;
+    }
+    if (HasThreeChildren(n)) {
+        RenderHelper(n->A, render_img);
+        RenderHelper(n->B, render_img);
+        RenderHelper(n->C, render_img);
+    } else if (HasTwoChildren(n)) {
+        RenderHelper(n->A, render_img);
+        RenderHelper(n->C, render_img);
+    } else {
+        // Leaf, must draw rectangle
+        for (unsigned int x = n->upperleft.first; x < n->upperleft.first + n->width; x++) {
+            for (unsigned int y = n->upperleft.second; y < n->upperleft.second + n->height; y++) {
+                RGBAPixel *toEdit = render_img.getPixel(x, y);
+                *toEdit = n->avg;
+            }
+        }
+    }
+}
+
+bool TripleTree::HasThreeChildren(const Node *n) const {
+    return (
+        n->A != nullptr &&
+        n->B != nullptr &&
+        n->C != nullptr);
+}
+
+bool TripleTree::HasTwoChildren(const Node *n) const {
+    return (
+        n->A != nullptr &&
+        n->C != nullptr);
 }
 
 /*
@@ -88,7 +129,6 @@ PNG TripleTree::Render() const {
  */
 void TripleTree::Prune(double tol) {
     // add your implementation below
-	
 }
 
 /**
@@ -100,7 +140,6 @@ void TripleTree::Prune(double tol) {
  */
 void TripleTree::FlipHorizontal() {
     // add your implementation below
-	
 }
 
 /**
@@ -112,7 +151,6 @@ void TripleTree::FlipHorizontal() {
  */
 void TripleTree::RotateCCW() {
     // add your implementation below
-	
 }
 
 /*
@@ -126,13 +164,12 @@ int TripleTree::NumLeaves() const {
 }
 
 /**
-     * Destroys all dynamically allocated memory associated with the
-     * current TripleTree object. To be completed for PA3.
-     * You may want a recursive helper function for this one.
-     */
+ * Destroys all dynamically allocated memory associated with the
+ * current TripleTree object. To be completed for PA3.
+ * You may want a recursive helper function for this one.
+ */
 void TripleTree::Clear() {
     // add your implementation below
-	
 }
 
 /**
@@ -141,9 +178,8 @@ void TripleTree::Clear() {
  * You may want a recursive helper function for this one.
  * @param other - The TripleTree to be copied.
  */
-void TripleTree::Copy(const TripleTree& other) {
+void TripleTree::Copy(const TripleTree &other) {
     // add your implementation below
-	
 }
 
 /**
@@ -154,10 +190,76 @@ void TripleTree::Copy(const TripleTree& other) {
  * @param w - width of node to be built's rectangle.
  * @param h - height of node to be built's rectangle.
  */
-Node* TripleTree::BuildNode(PNG& im, pair<unsigned int, unsigned int> ul, unsigned int w, unsigned int h) {
-    // replace the line below with your implementation
-    return nullptr;
+Node *TripleTree::BuildNode(PNG &im, pair<unsigned int, unsigned int> ul, unsigned int w, unsigned int h) {
+    Node *newNode = new Node(ul, w, h);
+    if (w == 1 && h == 1) {
+        // base case, individual pixel
+        newNode->avg = *im.getPixel(ul.first, ul.second);
+        // no children
+        return newNode;
+    }
+    if (w >= h) {
+        // split wide
+        if (w == 2) {
+            newNode->A = BuildNode(im, ul, 1, h);
+            newNode->C = BuildNode(im, make_pair(ul.first + 1, ul.second), 1, h);
+        } else if (w % 3 == 0) {
+            // even split of 3
+            newNode->A = BuildNode(im, ul, w / 3, h);
+            newNode->B = BuildNode(im, make_pair(ul.first + w / 3, ul.second), w / 3, h);
+            newNode->C = BuildNode(im, make_pair(ul.first + 2 * (w / 3), ul.second), w / 3, h);
+        } else if (w % 3 == 1) {
+            // give b extra pixel
+            newNode->A = BuildNode(im, ul, w / 3, h);
+            newNode->B = BuildNode(im, make_pair(ul.first + w / 3, ul.second), w / 3 + 1, h);
+            newNode->C = BuildNode(im, make_pair(ul.first + 2 * (w / 3) + 1, ul.second), w / 3, h);
+        } else {
+            // give a & b extra pixel
+            newNode->A = BuildNode(im, ul, w / 3 + 1, h);
+            newNode->B = BuildNode(im, make_pair(ul.first + w / 3 + 1, ul.second), w / 3, h);
+            newNode->C = BuildNode(im, make_pair(ul.first + 2 * (w / 3) + 1, ul.second), w / 3 + 1, h);
+        }
+
+    } else {
+        // split tall
+        if (h == 2) {
+            newNode->A = BuildNode(im, ul, w, 1);
+            newNode->C = BuildNode(im, make_pair(ul.first, ul.second + 1), w, 1);
+        } else if (h % 3 == 0) {
+            // even split of 3
+            newNode->A = BuildNode(im, ul, w, h / 3);
+            newNode->B = BuildNode(im, make_pair(ul.first, ul.second + h / 3), w, h / 3);
+            newNode->C = BuildNode(im, make_pair(ul.first, ul.second + 2 * (h / 3)), w, h / 3);
+        } else if (h % 3 == 1) {
+            // give b extra pixel
+            newNode->A = BuildNode(im, ul, w, h / 3);
+            newNode->B = BuildNode(im, make_pair(ul.first, ul.second + h / 3), w, h / 3 + 1);
+            newNode->C = BuildNode(im, make_pair(ul.first, ul.second + 2 * (h / 3) + 1), w, h / 3);
+        } else {
+            // give a & b extra pixel
+            newNode->A = BuildNode(im, ul, w, h / 3 + 1);
+            newNode->B = BuildNode(im, make_pair(ul.first, ul.second + h / 3 + 1), w, h / 3);
+            newNode->C = BuildNode(im, make_pair(ul.first, ul.second + 2 * (h / 3) + 1), w, h / 3 + 1);
+        }
+    }
+
+    RGBAPixel *newPix = new RGBAPixel();
+    // Color Assignment
+    if (newNode->B != nullptr) {
+
+        newPix->r = newNode->A->avg.r + newNode->B->avg.r + newNode->C->avg.r / 3;
+        newPix->g = newNode->A->avg.g + newNode->B->avg.g + newNode->C->avg.g / 3;
+        newPix->b = newNode->A->avg.b + newNode->B->avg.b + newNode->C->avg.b / 3;
+        // TODO: alpha?
+    } else {
+        // B is null
+        newPix->r = newNode->A->avg.r + newNode->C->avg.r / 3;
+        newPix->g = newNode->A->avg.g + newNode->C->avg.g / 3;
+        newPix->b = newNode->A->avg.b + newNode->C->avg.b / 3;
+    }
+    newNode->avg = *newPix;
+
+    return newNode;
 }
 
 /* ===== IF YOU HAVE DEFINED PRIVATE MEMBER FUNCTIONS IN tripletree_private.h, IMPLEMENT THEM HERE ====== */
-

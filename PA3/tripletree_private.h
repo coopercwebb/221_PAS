@@ -9,5 +9,9 @@
  *              No other scaffolding is necessary.
  */
 
- // begin your declarations below
+// begin your declarations below
+void RenderHelper(const Node *n, PNG &render_img) const;
 
+bool HasThreeChildren(const Node *n) const;
+
+bool HasTwoChildren(const Node *n) const;
