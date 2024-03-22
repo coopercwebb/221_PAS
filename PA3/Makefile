@@ -9,8 +9,8 @@ INCLUDE_UTILS = cs221util/PNG.cpp cs221util/PNG.h cs221util/RGBAPixel.h cs221uti
 
 CXX = clang++
 LD = clang++
-CXXFLAGS = -std=c++1y -c -g -O0 -Wall -Wextra -pedantic
-LDFLAGS = -std=c++1y -lpthread -lm
+CXXFLAGS = -std=c++1y -c -g -O0 -Wall -Wextra -pedantic -fsanitize=address
+LDFLAGS = -std=c++1y -lpthread -lm -fsanitize=address
 
 all: $(TEST_MAIN)
 

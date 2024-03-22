@@ -75,10 +75,13 @@ TripleTree::TripleTree(PNG &imIn) {
  */
 PNG TripleTree::Render() const {
     // replace the line below with your implementation
-    PNG *returnPNG = new PNG(root->width, root->height);
-    RenderHelper(root, *returnPNG);
+    if (root == nullptr) {
+        return PNG();
+    }
+    PNG returnPNG(root->width, root->height);
+    RenderHelper(root, returnPNG);
 
-    return *returnPNG;
+    return returnPNG;
 }
 
 void TripleTree::RenderHelper(const Node *n, PNG &render_img) const {
@@ -170,6 +173,24 @@ int TripleTree::NumLeaves() const {
  */
 void TripleTree::Clear() {
     // add your implementation below
+    if (root != nullptr) {
+        ClearHelper(root);
+    }
+    root = nullptr;
+}
+
+void TripleTree::ClearHelper(const Node *n) {
+    if (!HasTwoChildren(n)) {
+        // Leaf
+        delete n;
+        return;
+    }
+    ClearHelper(n->A);
+    ClearHelper(n->C);
+    if (HasThreeChildren(n)) {
+        ClearHelper(n->B);
+    }
+    delete n;
 }
 
 /**
@@ -180,6 +201,18 @@ void TripleTree::Clear() {
  */
 void TripleTree::Copy(const TripleTree &other) {
     // add your implementation below
+    CopyHelper(root, other.root);
+}
+
+void TripleTree::CopyHelper(Node *&node, const Node *copyNode) {
+    if (copyNode == nullptr) {
+        return;
+    }
+    node = new Node(copyNode->upperleft, copyNode->width, copyNode->height);
+    node->avg = copyNode->avg;
+    CopyHelper(node->A, copyNode->A);
+    CopyHelper(node->B, copyNode->B);
+    CopyHelper(node->C, copyNode->C);
 }
 
 /**
@@ -243,21 +276,33 @@ Node *TripleTree::BuildNode(PNG &im, pair<unsigned int, unsigned int> ul, unsign
         }
     }
 
-    RGBAPixel *newPix = new RGBAPixel();
     // Color Assignment
     if (newNode->B != nullptr) {
-
-        newPix->r = newNode->A->avg.r + newNode->B->avg.r + newNode->C->avg.r / 3;
-        newPix->g = newNode->A->avg.g + newNode->B->avg.g + newNode->C->avg.g / 3;
-        newPix->b = newNode->A->avg.b + newNode->B->avg.b + newNode->C->avg.b / 3;
+        newNode->avg.r = (newNode->A->avg.r * newNode->A->height * newNode->A->width +
+                          newNode->B->avg.r * newNode->B->height * newNode->B->width +
+                          newNode->C->avg.r * newNode->C->height * newNode->C->width) /
+                         (newNode->height * newNode->width);
+        newNode->avg.g = (newNode->A->avg.g * newNode->A->height * newNode->A->width +
+                          newNode->B->avg.g * newNode->B->height * newNode->B->width +
+                          newNode->C->avg.g * newNode->C->height * newNode->C->width) /
+                         (newNode->height * newNode->width);
+        newNode->avg.b = (newNode->A->avg.b * newNode->A->height * newNode->A->width +
+                          newNode->B->avg.b * newNode->B->height * newNode->B->width +
+                          newNode->C->avg.b * newNode->C->height * newNode->C->width) /
+                         (newNode->height * newNode->width);
         // TODO: alpha?
     } else {
         // B is null
-        newPix->r = newNode->A->avg.r + newNode->C->avg.r / 3;
-        newPix->g = newNode->A->avg.g + newNode->C->avg.g / 3;
-        newPix->b = newNode->A->avg.b + newNode->C->avg.b / 3;
+        newNode->avg.r = (newNode->A->avg.r * newNode->A->height * newNode->A->width +
+                          newNode->C->avg.r * newNode->C->height * newNode->C->width) /
+                         (newNode->height * newNode->width);
+        newNode->avg.g = (newNode->A->avg.g * newNode->A->height * newNode->A->width +
+                          newNode->C->avg.g * newNode->C->height * newNode->C->width) /
+                         (newNode->height * newNode->width);
+        newNode->avg.b = (newNode->A->avg.b * newNode->A->height * newNode->A->width +
+                          newNode->C->avg.b * newNode->C->height * newNode->C->width) /
+                         (newNode->height * newNode->width);
     }
-    newNode->avg = *newPix;
 
     return newNode;
 }
