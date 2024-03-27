@@ -135,7 +135,6 @@ void TripleTree::Prune(double tol) {
     PruneHelper(tol, root);
 }
 
-// TODO: double recursive func
 void TripleTree::PruneHelper(double tol, Node *&node) {
     // If the node does not have children, no need to prune
     if (node == nullptr || !HasTwoChildren(node)) {
@@ -194,16 +193,26 @@ void TripleTree::FlipHorizontalHelper(Node *&n, int image_width) {
         return;
     }
 
-    n->upperleft.first = (image_width - (n->upperleft.first) - 1);
+    n->upperleft.first = ((image_width - 1) - (n->upperleft.first) - (n->width - 1));
+
+    // Node *tmp = n->A;
+
+    // n->A = n->C;
+    // n->C = tmp;
 
     FlipHorizontalHelper(n->A, image_width);
     FlipHorizontalHelper(n->B, image_width);
     FlipHorizontalHelper(n->C, image_width);
 
-    Node *tmp = n->A;
+    if (HasTwoChildren(n)) {
+        // If the childrens y values are the same flip the orientation
+        if (n->A->upperleft.second == n->C->upperleft.second) {
+            Node *tmp = n->A;
 
-    n->A = n->C;
-    n->C = tmp;
+            n->A = n->C;
+            n->C = tmp;
+        }
+    }
 }
 
 /**

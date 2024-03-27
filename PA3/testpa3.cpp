@@ -338,6 +338,19 @@ void TestPrune(double tol) {
     output.writeToFile(output_path);
     cout << "done." << endl;
 
+    cout << "Flipping the tree... ";
+    t.FlipHorizontal();
+    cout << "done." << endl;
+
+    cout << "Rendering the flipped tree to PNG... ";
+    PNG copyOutput = t.Render();
+    cout << "done." << endl;
+
+    // write output PNG
+    cout << "Writing rendered PNG to file... ";
+    copyOutput.writeToFile("images-output/pruneto16leaves-8x5-prune_output_flipped.png");
+    cout << "done." << endl;
+
     cout << "Exiting TestPrune.\n"
          << endl;
 }
