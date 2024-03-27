@@ -131,7 +131,50 @@ bool TripleTree::HasTwoChildren(const Node *n) const {
  * @param tol - maximum allowable RGBA color distance to qualify for pruning
  */
 void TripleTree::Prune(double tol) {
-    // add your implementation below
+    // add your implementation below'
+    PruneHelper(tol, root);
+}
+
+// TODO: double recursive func
+void TripleTree::PruneHelper(double tol, Node *&node) {
+    // If the node does not have children, no need to prune
+    if (node == nullptr || !HasTwoChildren(node)) {
+        return;
+    }
+
+    if (CheckLeaves(tol, node, node->A) &&
+        CheckLeaves(tol, node, node->B) &&
+        CheckLeaves(tol, node, node->C)) {
+        SpecifiedClear(node->A);
+        SpecifiedClear(node->B);
+        SpecifiedClear(node->C);
+    }
+
+    PruneHelper(tol, node->A);
+    PruneHelper(tol, node->B);
+    PruneHelper(tol, node->C);
+}
+
+bool TripleTree::CheckLeaves(double tol, Node *&root_node, Node *&node) {
+    if (node == nullptr) {
+        return true;
+    }
+    if (isLeaf(node)) {
+        if (root_node->avg.distanceTo(node->avg) < tol) {
+            return true;
+        }
+        return false;
+    }
+    return (CheckLeaves(tol, root_node, node->A) &&
+            CheckLeaves(tol, root_node, node->B) &&
+            CheckLeaves(tol, root_node, node->C));
+}
+
+void TripleTree::SpecifiedClear(Node *&n) {
+    if (n != nullptr) {
+        ClearHelper(n);
+    }
+    n = nullptr;
 }
 
 /**
@@ -143,6 +186,24 @@ void TripleTree::Prune(double tol) {
  */
 void TripleTree::FlipHorizontal() {
     // add your implementation below
+    FlipHorizontalHelper(root, root->width);
+}
+
+void TripleTree::FlipHorizontalHelper(Node *&n, int image_width) {
+    if (n == nullptr) {
+        return;
+    }
+
+    n->upperleft.first = (image_width - (n->upperleft.first) - 1);
+
+    FlipHorizontalHelper(n->A, image_width);
+    FlipHorizontalHelper(n->B, image_width);
+    FlipHorizontalHelper(n->C, image_width);
+
+    Node *tmp = n->A;
+
+    n->A = n->C;
+    n->C = tmp;
 }
 
 /**
@@ -154,6 +215,7 @@ void TripleTree::FlipHorizontal() {
  */
 void TripleTree::RotateCCW() {
     // add your implementation below
+    // TODO:
 }
 
 /*
@@ -163,7 +225,22 @@ void TripleTree::RotateCCW() {
  */
 int TripleTree::NumLeaves() const {
     // replace the line below with your implementation
-    return -1;
+    return NumLeavesHelper(root);
+}
+
+int TripleTree::NumLeavesHelper(const Node *n) const {
+    if (n == nullptr) {
+        return 0;
+    }
+    if (isLeaf(n)) {
+        return 1;
+    }
+
+    return (NumLeavesHelper(n->A) + NumLeavesHelper(n->B) + NumLeavesHelper(n->C));
+}
+
+bool TripleTree::isLeaf(const Node *n) const {
+    return (n->A == nullptr && n->B == nullptr && n->C == nullptr);
 }
 
 /**

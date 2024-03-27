@@ -53,6 +53,8 @@ int main(int argc, char *argv[]) {
     TestBuildRender(image_number);
     TestFlipHorizontal(image_number);
     TestRotateCCW(image_number);
+    // TODO: test pruning vals
+    // TestPrune(0.15);
     TestPrune(0.1);
 
     return 0;
@@ -116,6 +118,10 @@ void TestBuildRender(int image_num) {
 
     cout << "Copying the tree... ";
     TripleTree copyT(t);
+    cout << "done." << endl;
+
+    cout << "Flipping the tree... ";
+    copyT.FlipHorizontal();
     cout << "done." << endl;
 
     cout << "Rendering the copied tree to PNG... ";
