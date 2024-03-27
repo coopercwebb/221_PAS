@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "Build",
             "program": "${workspaceFolder}/testpa3", //path to your programs exe and exe name
-            "args": ["2"],
+            "args": ["6"],
             "cwd": "${workspaceFolder}",
         }
     ]

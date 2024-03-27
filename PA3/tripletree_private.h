@@ -31,3 +31,5 @@ void SpecifiedClear(Node *&node);
 int NumLeavesHelper(const Node *n) const;
 
 bool isLeaf(const Node *n) const;
+
+void RotateCCWHelper(Node *&n, int image_width);

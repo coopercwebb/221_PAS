@@ -195,11 +195,6 @@ void TripleTree::FlipHorizontalHelper(Node *&n, int image_width) {
 
     n->upperleft.first = ((image_width - 1) - (n->upperleft.first) - (n->width - 1));
 
-    // Node *tmp = n->A;
-
-    // n->A = n->C;
-    // n->C = tmp;
-
     FlipHorizontalHelper(n->A, image_width);
     FlipHorizontalHelper(n->B, image_width);
     FlipHorizontalHelper(n->C, image_width);
@@ -225,6 +220,39 @@ void TripleTree::FlipHorizontalHelper(Node *&n, int image_width) {
 void TripleTree::RotateCCW() {
     // add your implementation below
     // TODO:
+    // (x,y) -> (-y,x)
+    RotateCCWHelper(root, root->width);
+}
+
+void TripleTree::RotateCCWHelper(Node *&n, int image_width) {
+    if (n == nullptr) {
+        return;
+    }
+
+    int tmp_x = n->upperleft.first;
+    int tmp_y = n->upperleft.second;
+    int tmp_width = n->width;
+    int tmp_height = n->height;
+
+    n->upperleft.first = tmp_y;
+    n->upperleft.second = (image_width - (tmp_x + (tmp_width)));
+
+    n->width = tmp_height;
+    n->height = tmp_width;
+
+    RotateCCWHelper(n->A, image_width);
+    RotateCCWHelper(n->B, image_width);
+    RotateCCWHelper(n->C, image_width);
+
+    if (HasTwoChildren(n)) {
+        // If C's y is less than A, flip orientation
+        if (n->C->upperleft.second < n->A->upperleft.second) {
+            Node *tmp = n->A;
+
+            n->A = n->C;
+            n->C = tmp;
+        }
+    }
 }
 
 /*
